@@ -60,13 +60,39 @@ This code expires in 10 minutes. Once verified, your profile will be created and
       route: "/api/auth/request-otp",
       email: body.email,
       status: emailResult.status,
-      detail: emailResult.detail
+      detail: emailResult.detail,
+      metadata: {
+        providerResult: emailResult.providerResult || []
+      }
     });
+
+    if (!emailResult.sent) {
+      await logTransaction({
+        traceId,
+        level: "error",
+        eventName: "otp_email_not_sent",
+        route: "/api/auth/request-otp",
+        email: body.email,
+        status: emailResult.status,
+        detail: emailResult.detail,
+        metadata: {
+          providerResult: emailResult.providerResult || []
+        }
+      });
+
+      return NextResponse.json(
+        {
+          error: "OTP email could not be sent. Please check SMTP/Railway email bridge settings.",
+          traceId
+        },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json({
       ok: true,
       traceId,
-      message: emailResult.sent ? "OTP sent to your email." : "OTP created. Email delivery is being processed."
+      message: "OTP sent to your email."
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to request OTP.";

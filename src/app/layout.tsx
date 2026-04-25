@@ -12,7 +12,12 @@ export const metadata: Metadata = {
     "LinkedIn AI agent",
     "Meta automation agent",
     "AI lead generation"
-  ]
+  ],
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg"
+  }
 };
 
 export default function RootLayout({

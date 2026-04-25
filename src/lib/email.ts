@@ -34,28 +34,37 @@ export async function sendBrandedEmail(input: BrandedEmailInput) {
   const results = [];
 
   for (const recipient of input.to) {
-    const response = await fetch(`${apiUrl.replace(/\/$/, "")}/api/send-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        source: "ai_sdr",
-        sourceRecordId: `${input.subject}:${recipient.email}`,
-        to: recipient,
-        subject: input.subject,
-        text: input.content,
-        html: input.content
-          .split("\n")
-          .filter(Boolean)
-          .map((line) => `<p>${line.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char] || char))}</p>`)
-          .join(""),
-        attachments: input.attachments,
-        recommendedOffer: "AI SDR by AnutechLabs",
-        cta: `${siteUrl}/ai-agents`
-      })
-    });
+    try {
+      const response = await fetch(`${apiUrl.replace(/\/$/, "")}/api/send-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "ai_sdr",
+          sourceRecordId: `${input.subject}:${recipient.email}`,
+          to: recipient,
+          subject: input.subject,
+          text: input.content,
+          html: input.content
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => `<p>${line.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char] || char))}</p>`)
+            .join(""),
+          attachments: input.attachments,
+          recommendedOffer: "AI SDR by AnutechLabs",
+          cta: `${siteUrl}/ai-agents`
+        })
+      });
 
-    const result = await response.json();
-    results.push({ ok: response.ok, ...result });
+      const result = await response.json();
+      results.push({ ok: response.ok, ...result });
+    } catch (error) {
+      results.push({
+        ok: false,
+        sent: false,
+        queued: false,
+        error: error instanceof Error ? error.message : "Email bridge request failed."
+      });
+    }
   }
 
   const sent = results.some((result) => result.sent);
@@ -66,7 +75,7 @@ export async function sendBrandedEmail(input: BrandedEmailInput) {
     sent,
     status: failed ? "failed" : sent ? "sent" : queued ? "queued" : "draft",
     detail: failed
-      ? "Client Acquisition email bridge failed."
+      ? `Client Acquisition email bridge failed: ${results.find((result) => !result.ok)?.error || "unknown error"}`
       : sent
         ? "Email sent by My Sales Tool."
         : queued
