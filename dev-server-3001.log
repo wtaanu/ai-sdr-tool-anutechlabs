@@ -1,0 +1,85 @@
+   ▲ Next.js 15.5.15
+   - Local:        http://127.0.0.1:3001
+   - Network:      http://127.0.0.1:3001
+
+ ✓ Starting...
+ ✓ Ready in 1954ms
+ ○ Compiling / ...
+ ✓ Compiled / in 7.1s (559 modules)
+ ✓ Compiled in 171ms (231 modules)
+ GET / 200 in 8121ms
+ GET / 200 in 337ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 648ms (556 modules)
+ GET /admin 200 in 1178ms
+ ✓ Compiled /admin/login in 485ms (559 modules)
+ GET /admin/login 200 in 715ms
+ ○ Compiling /ai-agents ...
+ ✓ Compiled /ai-agents in 555ms (561 modules)
+ GET /ai-agents 200 in 1534ms
+ GET / 200 in 407ms
+ ✓ Compiled in 1155ms (575 modules)
+ GET /admin/login 200 in 514ms
+ GET /admin 200 in 520ms
+ GET / 200 in 557ms
+ GET / 200 in 558ms
+ ✓ Compiled in 283ms (232 modules)
+ GET /admin/login 200 in 593ms
+ GET /admin 200 in 765ms
+ GET / 200 in 1301ms
+ GET / 200 in 1307ms
+ ✓ Compiled in 1631ms (561 modules)
+ GET /admin 200 in 1361ms
+ GET / 200 in 1077ms
+ GET /admin 200 in 78ms
+ GET / 200 in 139ms
+ GET /admin 200 in 81ms
+ GET / 200 in 104ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 4.9s (907 modules)
+ GET / 500 in 7193ms
+ GET /admin 500 in 7177ms
+ GET / 500 in 2471ms
+ GET /admin 500 in 2471ms
+ ✓ Compiled in 1819ms (817 modules)
+ GET / 200 in 216ms
+ ✓ Compiled in 1764ms (835 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 738ms (931 modules)
+ GET /ai-agents 500 in 4778ms
+ GET /ai-agents 500 in 72ms
+ GET / 500 in 305ms
+ GET / 500 in 68ms
+ GET / 500 in 279ms
+ GET / 500 in 77ms
+ GET / 500 in 204ms
+ GET / 500 in 76ms
+ GET / 500 in 209ms
+ GET / 500 in 84ms
+   Reload env: .env
+ ✓ Compiled in 421ms (835 modules)
+ ✓ Compiled in 1083ms (857 modules)
+ ✓ Compiled in 216ms (397 modules)
+ ✓ Compiled in 898ms (843 modules)
+ ✓ Compiled /_error in 339ms (939 modules)
+ GET /admin 500 in 614ms
+ GET /admin 500 in 73ms
+ ✓ Compiled in 625ms (953 modules)
+ ✓ Compiled in 1273ms (898 modules)
+ ✓ Compiled in 581ms (898 modules)
+ ✓ Compiled in 228ms (397 modules)
+ ✓ Compiled in 797ms (898 modules)
+ ✓ Compiled in 628ms (898 modules)
+ ✓ Compiled in 548ms (898 modules)
+ ✓ Compiled in 225ms (397 modules)
+ ✓ Compiled in 191ms (397 modules)
+ ✓ Compiled in 587ms (884 modules)
+ ✓ Compiled in 168ms (397 modules)
+ ✓ Compiled in 175ms (397 modules)
+ ✓ Compiled in 145ms (397 modules)
+ ✓ Compiled in 196ms (397 modules)
+ ✓ Compiled in 178ms (397 modules)
+ ✓ Compiled in 529ms (884 modules)
+ ✓ Compiled in 195ms (397 modules)
+ ✓ Compiled in 978ms (898 modules)
+[?25h

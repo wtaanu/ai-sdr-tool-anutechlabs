@@ -1,0 +1,8 @@
+{
+  "status": 404,
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/countries/layout,_N_T_/countries/ai-agents-for-[country]/layout,_N_T_/countries/ai-agents-for-[country]/page,_N_T_/countries/ai-agents-for-[country]"
+  }
+}

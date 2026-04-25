@@ -1,0 +1,574 @@
+ ⨯ [TypeError: a[d] is not a function] { digest: '369510519' }
+[TypeError: a[d] is not a function]
+ ⨯ [TypeError: a[d] is not a function]
+ ⨯ [TypeError: a[d] is not a function] { page: '/' }
+ ⨯ [TypeError: a[d] is not a function] { digest: '369510519' }
+[TypeError: a[d] is not a function]
+ ⨯ [TypeError: a[d] is not a function]
+ ⨯ [TypeError: a[d] is not a function] { page: '/admin' }
+ ⨯ Error: Cannot find module './778.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18876)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18925) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './778.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15859)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15904) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/admin'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\server\\next-font-manifest.json',
+  page: '/ai-agents'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\server\\next-font-manifest.json',
+  page: '/ai-agents'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\routes-manifest.json'
+}
+ ⨯ Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\2.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\client-development\\2.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\2.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\client-development\\2.pack.gz'
+}
+ ⨯ unhandledRejection:  [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\2.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\client-development\\2.pack.gz'
+}
+[Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\4.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\client-development\\4.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\4.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\client-development\\4.pack.gz'
+}
+ ⨯ unhandledRejection:  [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\4.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\client-development\\4.pack.gz'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\client-development\2.pack.gz'
+[Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\2.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\server-development\\2.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\2.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\server-development\\2.pack.gz'
+}
+ ⨯ unhandledRejection:  [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\2.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\server-development\\2.pack.gz'
+}
+[Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\5.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\server-development\\5.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\5.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\server-development\\5.pack.gz'
+}
+ ⨯ unhandledRejection:  [Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\5.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\pawan\\Documents\\Codex\\My Portfolio\\Code\\ai-sdr-website\\.next\\cache\\webpack\\server-development\\5.pack.gz'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat 'C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\cache\webpack\server-development\2.pack.gz'
+ ⨯ Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: Cannot find module './331.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18910)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\page.js:2:18963) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/shared/lib/router/router.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ TypeError: a[d] is not a function
+    at c (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js:1:127)
+    at 4866 (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:1:1771)
+    at c (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js:1:127)
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15236)
+    at c.X (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js:1:1191)
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15218)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15267) {
+  page: '/admin'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+TypeError: a[d] is not a function
+    at 4866 (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:1:1771)
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15236)
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15218)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\app\admin\page.js:2:15267) {
+  page: '/admin'
+}
+ ⨯ Error: Cannot find module './611.js'
+Require stack:
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\webpack-runtime.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\require.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\load-components.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\utils.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\options.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\swc\index.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\parse-module.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\build\analysis\get-page-static-info.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:321)
+    at Object.<anonymous> (C:\Users\pawan\Documents\Codex\My Portfolio\Code\ai-sdr-website\.next\server\pages\_document.js:1:366) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
