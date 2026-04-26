@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/agent-interest-followups",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

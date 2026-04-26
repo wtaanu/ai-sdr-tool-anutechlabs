@@ -169,8 +169,8 @@ export default function Home() {
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">About the builder</p>
             <h2 className="mt-3 text-4xl font-black text-slate-950">Built by Anuragini Pathak, focused on practical AI automation.</h2>
             <div className="mt-5 flex flex-wrap gap-3">
-              <a className="rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white" href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
-              <a className="rounded-md bg-orange-500 px-4 py-3 text-sm font-bold text-white" href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
+              <a className="rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white" href="https://www.instagram.com/anutechaitools/" target="_blank" rel="noreferrer">Instagram</a>
+              <a className="rounded-md bg-orange-500 px-4 py-3 text-sm font-bold text-white" href="https://www.linkedin.com/in/anuragini-pathak-49a03564/" target="_blank" rel="noreferrer">LinkedIn</a>
             </div>
           </div>
           <div className="space-y-5 text-base leading-8 text-slate-700">
@@ -207,7 +207,7 @@ export default function Home() {
       </section>
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="section-shell flex flex-col justify-between gap-4 text-sm text-slate-600 md:flex-row md:items-center">
-          <p className="font-semibold text-slate-800">AI SDR by AnutechLabs</p>
+          <p className="font-semibold text-slate-800">Copyright AnutechLabs 2026</p>
           <PolicyLinks />
         </div>
       </footer>

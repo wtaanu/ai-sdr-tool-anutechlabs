@@ -74,6 +74,20 @@ export async function POST(request: Request) {
       }
     });
 
+    if (body.selectedAgentIds.length) {
+      await supabase
+        .from("agent_interest_events")
+        .update({
+          status: "submitted",
+          submitted_at: new Date().toISOString(),
+          enquiry_id: enquiry.id
+        })
+        .eq("user_id", body.userId)
+        .in("agent_id", body.selectedAgentIds)
+        .eq("status", "opened")
+        .is("submitted_at", null);
+    }
+
     const clientEmailResult = await sendBrandedEmail({
       to: [
         {

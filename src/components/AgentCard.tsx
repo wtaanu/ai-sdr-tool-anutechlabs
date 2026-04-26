@@ -4,15 +4,32 @@ import { useState } from "react";
 import type { Agent } from "@/data/agents";
 import { AgentInterestModal } from "@/components/AgentInterestModal";
 import { isVisitorVerified, openSubscribeGate } from "@/components/SubscribeGate";
-import { getAgentBusinessValue, getAgentProblems } from "@/lib/agentDetails";
+import { getAgentBusinessValues, getAgentProblems } from "@/lib/agentDetails";
 
 export function AgentCard({ agent }: { agent: Agent }) {
   const [isOpen, setIsOpen] = useState(false);
+  const businessValue = getAgentBusinessValues(agent)[0];
 
   function showInterest() {
     if (!isVisitorVerified()) {
       openSubscribeGate();
       return;
+    }
+
+    const rawUser = window.localStorage.getItem("anutechlabs_verified_user");
+    const user = rawUser ? JSON.parse(rawUser) as { id?: string } : null;
+    if (user?.id) {
+      void fetch("/api/agent-interest-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          agentId: agent.id,
+          agentName: agent.name,
+          agentSlug: agent.slug,
+          pageUrl: window.location.pathname
+        })
+      });
     }
 
     setIsOpen(true);
@@ -33,7 +50,7 @@ export function AgentCard({ agent }: { agent: Agent }) {
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-md bg-black/35 p-3">
               <p className="font-mono text-xs text-orange-300">business_value</p>
-              <p className="mt-2 text-xs leading-5 text-slate-300">{getAgentBusinessValue(agent)}</p>
+              <p className="mt-2 text-xs leading-5 text-slate-300">{businessValue}</p>
             </div>
             <div className="rounded-md bg-black/35 p-3">
               <p className="font-mono text-xs text-orange-300">solves</p>

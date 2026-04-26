@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: IndustryPageProps) {
 export default async function IndustryPage({ params }: IndustryPageProps) {
   const { industry } = await params;
   if (!industries.includes(industry)) notFound();
-  const featured = agents.filter((agent) => ["AI SDR", "Social", "Industry", "Email"].includes(agent.category)).slice(0, 9);
+  const featured = agents.filter((agent) => ["Lead Generation", "Social Media Automation", "Instagram Automation", "Industry Automation", "Email Automation"].includes(agent.category)).slice(0, 9);
 
   return (
     <main className="min-h-screen bg-graphite text-white">

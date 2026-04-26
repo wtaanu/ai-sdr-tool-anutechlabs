@@ -6,16 +6,16 @@ import type { Agent } from "@/data/agents";
 import { openSubscribeGate } from "@/components/SubscribeGate";
 
 const categoryUseCases: Record<string, string[]> = {
-  "AI SDR": ["Lead qualification", "Follow-up automation", "Call booking", "CRM movement"],
-  Email: ["Email drafting", "Reply handling", "Sequence planning", "Deliverability-aware workflows"],
-  LinkedIn: ["Prospect research", "Connection strategy", "Conversation tracking", "Content-led outreach"],
-  Meta: ["Lead form routing", "Campaign intelligence", "Audience response", "Retargeting support"],
-  Social: ["DM handling", "Content repurposing", "Social listening", "Engagement workflows"],
-  SEO: ["Search intent mapping", "Landing page planning", "FAQ generation", "Programmatic SEO"],
-  Finance: ["Invoice tracking", "Payment reminders", "Record updates", "Exception alerts"],
-  Compliance: ["Consent tracking", "Policy workflows", "Request management", "Audit support"],
-  Operations: ["Document processing", "SOP creation", "Task routing", "Workflow automation"],
-  Industry: ["Industry intake", "Client qualification", "Appointment routing", "Case summaries"]
+  "Lead Generation": ["Lead qualification", "Follow-up automation", "Call booking", "CRM movement"],
+  "Email Automation": ["Email drafting", "Reply handling", "Sequence planning", "Deliverability-aware workflows"],
+  "LinkedIn Automation": ["Prospect research", "Connection strategy", "Conversation tracking", "Content-led outreach"],
+  "Instagram Automation": ["DM handling", "Instagram content planning", "Lead capture", "Engagement workflows"],
+  "Social Media Automation": ["Lead form routing", "Campaign intelligence", "Social listening", "Retargeting support"],
+  "SEO Automation": ["Search intent mapping", "Landing page planning", "FAQ generation", "Programmatic SEO"],
+  "Finance Automation": ["Invoice tracking", "Payment reminders", "Record updates", "Exception alerts"],
+  "Compliance Automation": ["Consent tracking", "Policy workflows", "Request management", "Audit support"],
+  "Business Automation": ["Document processing", "SOP creation", "Task routing", "Workflow automation"],
+  "Industry Automation": ["Industry intake", "Client qualification", "Appointment routing", "Case summaries"]
 };
 
 export function AgentInterestModal({
@@ -25,7 +25,7 @@ export function AgentInterestModal({
   agent: Agent;
   onClose: () => void;
 }) {
-  const useCases = categoryUseCases[agent.category] || categoryUseCases.Operations;
+  const useCases = categoryUseCases[agent.category] || categoryUseCases["Business Automation"];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [message, setMessage] = useState("");

@@ -17,6 +17,52 @@ type AuditReport = {
   quickWins: string[];
 };
 
+type RawAuditReport = Partial<AuditReport> | null | undefined;
+
+function asString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function asArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function normalizeAuditReport(value: RawAuditReport): AuditReport {
+  const opportunityScore = Number(value?.opportunityScore);
+
+  return {
+    headline: asString(value?.headline, "Your AI automation audit is ready"),
+    executiveSummary: asString(
+      value?.executiveSummary,
+      "Your report was created successfully. Review the recommended next steps and book a call if you want a custom automation plan."
+    ),
+    opportunityScore: Number.isFinite(opportunityScore) ? Math.max(0, Math.min(100, Math.round(opportunityScore))) : 0,
+    roiPotential: asString(value?.roiPotential, "Review recommended"),
+    estimatedMonthlyLeakage: asString(
+      value?.estimatedMonthlyLeakage,
+      "Revenue impact depends on your lead volume, response speed, and follow-up consistency."
+    ),
+    matchedAgents: asArray<AuditReport["matchedAgents"][number]>(value?.matchedAgents)
+      .map((agent, index) => ({
+        id: Number.isFinite(Number(agent?.id)) ? Number(agent.id) : index + 1,
+        name: asString(agent?.name, "Custom AI Automation Agent"),
+        slug: asString(agent?.slug, "custom-ai-agent"),
+        reason: asString(agent?.reason, "This can be customized around your current workflow and growth goal.")
+      }))
+      .slice(0, 5),
+    analytics: asArray<AuditReport["analytics"][number]>(value?.analytics)
+      .map((item) => ({
+        label: asString(item?.label, "Automation opportunity"),
+        value: asString(item?.value, "Needs review"),
+        insight: asString(item?.insight, "A deeper review will clarify the fastest automation win.")
+      }))
+      .slice(0, 6),
+    problemMap: asArray<string>(value?.problemMap).filter(Boolean),
+    roadmap: asArray<string>(value?.roadmap).filter(Boolean),
+    quickWins: asArray<string>(value?.quickWins).filter(Boolean)
+  };
+}
+
 const initialForm = {
   industry: "",
   businessType: "",
@@ -65,13 +111,18 @@ export function FreeAuditPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, userId: user.id })
       });
-      const result = await response.json();
+      let result: { error?: string; report?: RawAuditReport } = {};
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error("Audit response could not be read. Please try again.");
+      }
 
       if (!response.ok) {
         throw new Error(result.error || "Unable to create audit.");
       }
 
-      setReport(result.report);
+      setReport(normalizeAuditReport(result.report));
       setMessage("Audit created. The same report is being emailed as a PDF.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create audit.");
@@ -153,36 +204,46 @@ export function FreeAuditPanel() {
               </div>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-4">
-              {report.analytics.map((item) => (
+              {report.analytics.length ? report.analytics.map((item) => (
                 <div key={item.label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-orange-600">{item.label}</p>
                   <p className="mt-2 text-xl font-black text-slate-950">{item.value}</p>
                   <p className="mt-2 text-xs leading-5 text-slate-600">{item.insight}</p>
                 </div>
-              ))}
+              )) : (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 md:col-span-4">
+                  <p className="text-sm font-bold text-slate-950">Analytics will be refined on your strategy call.</p>
+                  <p className="mt-2 text-xs leading-5 text-slate-600">The first report is ready, and deeper metrics can be added after reviewing your real funnel data.</p>
+                </div>
+              )}
             </div>
             <div className="mt-8 grid gap-6 lg:grid-cols-3">
               <div>
                 <h4 className="font-black text-slate-950">Recommended agents</h4>
                 <div className="mt-4 space-y-3">
-                  {report.matchedAgents.map((agent) => (
+                  {report.matchedAgents.length ? report.matchedAgents.map((agent) => (
                     <a key={agent.id} className="block rounded-md border border-orange-200 bg-orange-50 p-4" href={`/ai-agents/${agent.slug}`}>
                       <p className="font-bold text-orange-800">{agent.name}</p>
                       <p className="mt-2 text-xs leading-5 text-orange-900">{agent.reason}</p>
                     </a>
-                  ))}
+                  )) : (
+                    <div className="rounded-md border border-orange-200 bg-orange-50 p-4">
+                      <p className="font-bold text-orange-800">Custom AI Automation Agent</p>
+                      <p className="mt-2 text-xs leading-5 text-orange-900">A custom agent can be designed around your exact industry, tools, and revenue workflow.</p>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
                 <h4 className="font-black text-slate-950">Roadmap</h4>
                 <ol className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                  {report.roadmap.map((item, index) => <li key={item}>{index + 1}. {item}</li>)}
+                  {(report.roadmap.length ? report.roadmap : ["Capture enquiries in one place.", "Qualify leads automatically.", "Send structured follow-ups.", "Book qualified calls."]).map((item, index) => <li key={item}>{index + 1}. {item}</li>)}
                 </ol>
               </div>
               <div>
                 <h4 className="font-black text-slate-950">Quick wins</h4>
                 <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                  {report.quickWins.map((item) => <li key={item}>- {item}</li>)}
+                  {(report.quickWins.length ? report.quickWins : ["Reduce lead response time.", "Add one follow-up sequence.", "Track source and agent interest for every enquiry."]).map((item) => <li key={item}>- {item}</li>)}
                 </ul>
                 <p className="mt-5 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">{report.estimatedMonthlyLeakage}</p>
               </div>

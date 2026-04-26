@@ -11,12 +11,37 @@ export async function POST(request: Request) {
     const body = signupSchema.parse(await request.json());
     await logTransaction({ traceId, eventName: "otp_request_started", route: "/api/auth/request-otp", email: body.email, status: "started" });
     const supabase = getSupabaseAdminClient();
+    const email = body.email.toLowerCase().trim();
+
+    const { data: existingUser, error: existingUserError } = await supabase
+      .from("public_users")
+      .select("id,email,full_name")
+      .eq("email", email)
+      .eq("is_email_verified", true)
+      .maybeSingle();
+
+    if (existingUserError) {
+      await logTransaction({ traceId, level: "error", eventName: "otp_existing_user_lookup_failed", route: "/api/auth/request-otp", email, status: "failed", detail: existingUserError.message });
+      return NextResponse.json({ error: existingUserError.message }, { status: 500 });
+    }
+
+    if (existingUser) {
+      await logTransaction({ traceId, eventName: "otp_skipped_existing_verified_user", route: "/api/auth/request-otp", email, userId: existingUser.id, status: "already_verified" });
+      return NextResponse.json({
+        ok: true,
+        alreadyVerified: true,
+        traceId,
+        user: existingUser,
+        message: "This email is already verified. Welcome back."
+      });
+    }
+
     const otp = createOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     const { error } = await supabase.from("otp_requests").insert({
-      email: body.email.toLowerCase().trim(),
-      otp_hash: hashOtp(body.email, otp),
+      email,
+      otp_hash: hashOtp(email, otp),
       expires_at: expiresAt
     });
 

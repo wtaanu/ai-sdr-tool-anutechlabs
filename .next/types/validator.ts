@@ -110,6 +110,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/admin/interest-events/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/admin/interest-events">> = Specific
+  const handler = {} as typeof import("../../src/app/admin/interest-events/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/admin/leads/[id]/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/admin/leads/[id]">> = Specific
@@ -321,6 +330,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/admin/logout">> = Specific
   const handler = {} as typeof import("../../src/app/api/admin/logout/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/agent-interest-events/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/agent-interest-events">> = Specific
+  const handler = {} as typeof import("../../src/app/api/agent-interest-events/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/agent-interest-followups/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/agent-interest-followups">> = Specific
+  const handler = {} as typeof import("../../src/app/api/agent-interest-followups/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

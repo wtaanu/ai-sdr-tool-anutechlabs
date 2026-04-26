@@ -88,6 +88,29 @@ create table if not exists public.enquiries (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.agent_interest_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.public_users(id) on delete cascade,
+  enquiry_id uuid references public.enquiries(id) on delete set null,
+  agent_id bigint not null,
+  agent_name text not null,
+  agent_slug text not null,
+  page_url text,
+  status text not null default 'opened',
+  followup_due_at timestamptz not null,
+  submitted_at timestamptz,
+  followup_sent_at timestamptz,
+  followup_status text,
+  followup_detail text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists agent_interest_events_due_idx
+  on public.agent_interest_events (status, followup_due_at);
+create index if not exists agent_interest_events_user_agent_idx
+  on public.agent_interest_events (user_id, agent_id, status);
+
 create table if not exists public.bookings (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references public.public_users(id) on delete cascade,

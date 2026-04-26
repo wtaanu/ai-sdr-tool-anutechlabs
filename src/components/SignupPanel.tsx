@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { PolicyButton } from "@/components/PolicyModal";
 
@@ -24,6 +24,12 @@ export function SignupPanel({ compact = false, onVerified }: SignupPanelProps) {
     otp: ""
   });
 
+  useEffect(() => {
+    if (window.localStorage.getItem("anutechlabs_verified_user")) {
+      setIsVerified(true);
+    }
+  }, []);
+
   function updateField(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -42,6 +48,14 @@ export function SignupPanel({ compact = false, onVerified }: SignupPanelProps) {
 
       if (!response.ok) {
         throw new Error(result.error || "Unable to send OTP.");
+      }
+
+      if (result.alreadyVerified && result.user) {
+        window.localStorage.setItem("anutechlabs_verified_user", JSON.stringify(result.user));
+        setMessage(result.message || "This email is already verified. Welcome back.");
+        setIsVerified(true);
+        onVerified?.();
+        return;
       }
 
       setMessage(result.message || "OTP sent to your email.");
@@ -88,7 +102,7 @@ export function SignupPanel({ compact = false, onVerified }: SignupPanelProps) {
           <h2 className="mt-3 text-2xl font-black text-slate-950">You are verified.</h2>
           <p className="mt-2 text-sm leading-6 text-slate-700">Explore agents, get your free audit, or describe a custom AI workflow.</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <a className="rounded-md bg-orange-500 px-4 py-3 text-sm font-bold text-white" href="#free-audit">Get free audit</a>
+            <a className="rounded-md bg-orange-500 px-4 py-3 text-sm font-bold text-white" href="/free-audit">Get free audit</a>
             <a className="rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white" href="/ai-agents">Explore agents</a>
           </div>
         </div>

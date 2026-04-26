@@ -4,7 +4,7 @@ import { AgentDetailAction } from "@/components/AgentDetailAction";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { agents } from "@/data/agents";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
-import { getAgentBusinessValue, getAgentExpectations, getAgentProblems, toYouTubeEmbed } from "@/lib/agentDetails";
+import { getAgentBusinessValues, getAgentExpectations, getAgentPageDescription, getAgentProblems, toYouTubeEmbed } from "@/lib/agentDetails";
 
 export function generateStaticParams() {
   return agents.map((agent) => ({ slug: agent.slug }));
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: AgentPageProps) {
 
   return {
     title: `${agent.name} | AI SDR by AnutechLabs`,
-    description: agent.outcome
+    description: getAgentPageDescription(agent)
   };
 }
 
@@ -49,6 +49,8 @@ export default async function AgentDetailPage({ params }: AgentPageProps) {
   const youtubeEmbed = videoUrl ? toYouTubeEmbed(videoUrl) : "";
   const problems = getAgentProblems(agent);
   const expectations = getAgentExpectations(agent);
+  const businessValues = getAgentBusinessValues(agent);
+  const pageDescription = getAgentPageDescription(agent);
 
   return (
     <main className="min-h-screen bg-graphite text-white">
@@ -64,7 +66,7 @@ export default async function AgentDetailPage({ params }: AgentPageProps) {
                 <span className="font-mono text-xs text-orange-400">agent::{String(agent.id).padStart(2, "0")}</span>
               </div>
               <h1 className="mt-5 text-5xl font-black leading-tight">{agent.name}</h1>
-              <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">{agent.outcome}</p>
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">{pageDescription}</p>
               <div className="mt-8">
                 <AgentDetailAction agent={agent} />
               </div>
@@ -85,11 +87,7 @@ export default async function AgentDetailPage({ params }: AgentPageProps) {
           </div>
 
           <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {[
-              getAgentBusinessValue(agent),
-              "Customizable for your industry, niche, tools, language, market, and follow-up process.",
-              "Can start as a focused workflow and later grow into a larger AI operating system."
-            ].map((item) => (
+            {businessValues.map((item) => (
               <div key={item} className="rounded-lg border border-orange-500/20 bg-[#12151d] p-5">
                 <p className="font-mono text-xs text-orange-300">business_value</p>
                 <p className="mt-3 text-sm leading-6 text-slate-300">{item}</p>

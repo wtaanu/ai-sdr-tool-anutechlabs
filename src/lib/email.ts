@@ -11,6 +11,8 @@ type BrandedEmailInput = {
   to: EmailRecipient[];
   subject: string;
   content: string;
+  htmlContent?: string;
+  cta?: string;
   attachments?: Array<{
     filename: string;
     contentBase64: string;
@@ -32,10 +34,12 @@ export async function sendBrandedEmail(input: BrandedEmailInput) {
   }
 
   const results = [];
+  const bridgeBaseUrl = apiUrl.replace(/\/$/, "").replace(/\/api$/, "");
 
   for (const recipient of input.to) {
     try {
-      const response = await fetch(`${apiUrl.replace(/\/$/, "")}/api/send-email`, {
+      const endpoint = `${bridgeBaseUrl}/api/send-email`;
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -44,19 +48,19 @@ export async function sendBrandedEmail(input: BrandedEmailInput) {
           to: recipient,
           subject: input.subject,
           text: input.content,
-          html: input.content
+          html: input.htmlContent || input.content
             .split("\n")
             .filter(Boolean)
             .map((line) => `<p>${line.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char] || char))}</p>`)
             .join(""),
           attachments: input.attachments,
           recommendedOffer: "AI SDR by AnutechLabs",
-          cta: `${siteUrl}/ai-agents`
+          cta: input.cta || `${siteUrl}/ai-agents`
         })
       });
 
       const result = await response.json();
-      results.push({ ok: response.ok, ...result });
+      results.push({ ok: response.ok, endpoint, ...result });
     } catch (error) {
       results.push({
         ok: false,

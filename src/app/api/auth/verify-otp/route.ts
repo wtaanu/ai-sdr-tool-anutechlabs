@@ -77,6 +77,63 @@ export async function POST(request: Request) {
       details: { source: body.source || "website" }
     });
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anutechlabs.company";
+    const freeAuditUrl = `${siteUrl.replace(/\/$/, "")}/free-audit`;
+    const welcomeSubject = "Welcome to AI SDR by AnutechLabs | Your AI Agent is ready to configure";
+    const welcomeText = withComplianceFooter(`Hi {{first_name}},
+
+Welcome to AI SDR by AnutechLabs. You've joined a global network of businesses using autonomous agents to handle the heavy lifting of lead generation and client acquisition.
+
+Your access to the AI Agent Hub is now active. Here is how to get started:
+
+Deploy a Pre-Built Agent: Choose from our gallery of 50+ specialized agents for Real Estate, Legal, SaaS, Social, Finance, Compliance, and more.
+
+Custom Build: Use our Workflow Architect to describe a unique automation, and we'll build the logic for you.
+
+Safety First: Your data is protected under our global privacy-first framework, including GDPR, CCPA, and DPDP aligned practices.
+
+What's next?
+I recommend starting with your Free AI Automation Audit. It takes 2 minutes and identifies exactly which agent will save you the most hours this week.
+
+Click here for FREE Audit:
+${freeAuditUrl}
+
+To your growth,`);
+    const welcomeHtml = `
+      <p>Hi {{first_name}},</p>
+      <p>Welcome to <strong>AI SDR by AnutechLabs</strong>. You've joined a global network of businesses using autonomous agents to handle the heavy lifting of lead generation and client acquisition.</p>
+      <p>Your access to the <strong>AI Agent Hub</strong> is now active. Here is how to get started:</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;border-collapse:collapse">
+        <tr>
+          <td style="padding:14px 0;border-bottom:1px solid #e5e7eb">
+            <strong style="color:#f97316">Deploy a Pre-Built Agent:</strong><br />
+            Choose from our gallery of 50+ specialized agents for Real Estate, Legal, SaaS, Social, Finance, Compliance, and more.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 0;border-bottom:1px solid #e5e7eb">
+            <strong style="color:#f97316">Custom Build:</strong><br />
+            Use our Workflow Architect to describe a unique automation, and we'll build the logic for you.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 0">
+            <strong style="color:#f97316">Safety First:</strong><br />
+            Your data is protected under our global privacy-first framework, including GDPR, CCPA, and DPDP aligned practices.
+          </td>
+        </tr>
+      </table>
+      <p><strong>What's next?</strong><br />I recommend starting with your Free AI Automation Audit. It takes 2 minutes and identifies exactly which agent will save you the most hours this week.</p>
+      <p style="margin:24px 0">
+        <a href="${freeAuditUrl}" style="display:inline-block;background:#f97316;color:#ffffff;text-decoration:none;font-weight:800;padding:13px 20px;border-radius:8px">Get your FREE Audit</a>
+      </p>
+      <p>Click here for FREE Audit: <a href="${freeAuditUrl}" style="color:#f97316;font-weight:700">${freeAuditUrl}</a></p>
+      <p>To your growth,</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
+      <p style="font-size:13px;color:#64748b">You can manage communication preferences here: <a href="${siteUrl.replace(/\/$/, "")}/unsubscribe" style="color:#f97316">unsubscribe</a></p>
+      <p style="font-size:13px;color:#64748b">Privacy and data requests: <a href="${siteUrl.replace(/\/$/, "")}/privacy" style="color:#f97316">privacy policy</a></p>
+    `;
+
     const emailResult = await sendBrandedEmail({
       to: [
         {
@@ -88,18 +145,16 @@ export async function POST(request: Request) {
           target: "AI agent catalogue"
         }
       ],
-      subject: "Your AI SDR by AnutechLabs access is verified",
-      content: withComplianceFooter(`Hi {{first_name}},
-
-Your email is verified and your AI SDR by AnutechLabs profile is ready.
-
-You can now explore AI agents, submit an interest request, or describe a custom automation workflow.`)
+      subject: welcomeSubject,
+      content: welcomeText,
+      htmlContent: welcomeHtml,
+      cta: freeAuditUrl
     });
 
     await supabase.from("email_logs").insert({
       user_id: user.id,
       email_type: "verification_success",
-      subject: "Your AI SDR by AnutechLabs access is verified",
+      subject: welcomeSubject,
       status: emailResult.status,
       provider_message_id: emailResult.detail,
       sent_at: emailResult.sent ? new Date().toISOString() : null

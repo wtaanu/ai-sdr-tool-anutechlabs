@@ -64,7 +64,7 @@ export default function FreeAuditLandingPage() {
 
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="section-shell flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <p className="font-semibold text-slate-800">AI SDR by AnutechLabs</p>
+          <p className="font-semibold text-slate-800">Copyright AnutechLabs 2026</p>
           <PolicyLinks />
         </div>
       </footer>

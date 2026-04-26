@@ -55,13 +55,14 @@ function chooseAgents(input: FreeAuditInput) {
       for (const token of text.split(/\W+/).filter((word) => word.length > 3)) {
         if (haystack.includes(token)) score += 1;
       }
-      if (/lead|sales|client|follow|call|crm/.test(text) && agent.category === "AI SDR") score += 6;
-      if (/email|inbox|reply|newsletter/.test(text) && agent.category === "Email") score += 5;
-      if (/linkedin/.test(text) && agent.category === "LinkedIn") score += 7;
-      if (/meta|facebook|instagram|ads/.test(text) && ["Meta", "Social"].includes(agent.category)) score += 6;
-      if (/seo|google|traffic|content/.test(text) && agent.category === "SEO") score += 6;
-      if (/invoice|payment|finance/.test(text) && agent.category === "Finance") score += 6;
-      if (/privacy|gdpr|policy|audit|compliance/.test(text) && agent.category === "Compliance") score += 6;
+      if (/lead|sales|client|follow|call|crm/.test(text) && agent.category === "Lead Generation") score += 6;
+      if (/email|inbox|reply|newsletter/.test(text) && agent.category === "Email Automation") score += 5;
+      if (/linkedin/.test(text) && agent.category === "LinkedIn Automation") score += 7;
+      if (/instagram|dm|reels/.test(text) && agent.category === "Instagram Automation") score += 7;
+      if (/meta|facebook|instagram|ads|social/.test(text) && ["Instagram Automation", "Social Media Automation"].includes(agent.category)) score += 6;
+      if (/seo|google|traffic|content/.test(text) && agent.category === "SEO Automation") score += 6;
+      if (/invoice|payment|finance/.test(text) && agent.category === "Finance Automation") score += 6;
+      if (/privacy|gdpr|policy|audit|compliance/.test(text) && agent.category === "Compliance Automation") score += 6;
       return { agent, score };
     })
     .sort((a, b) => b.score - a.score)

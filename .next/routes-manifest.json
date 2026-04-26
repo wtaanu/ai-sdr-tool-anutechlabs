@@ -138,6 +138,12 @@
       "namedRegex": "^/admin/emails(?:/)?$"
     },
     {
+      "page": "/admin/interest-events",
+      "regex": "^/admin/interest\\-events(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/interest\\-events(?:/)?$"
+    },
+    {
       "page": "/admin/login",
       "regex": "^/admin/login(?:/)?$",
       "routeKeys": {},

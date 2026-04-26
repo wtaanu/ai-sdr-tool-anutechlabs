@@ -34,6 +34,14 @@ export const enquirySchema = z.object({
   remarks: z.string().optional().or(z.literal(""))
 });
 
+export const agentInterestOpenSchema = z.object({
+  userId: z.string().uuid(),
+  agentId: z.number().int().positive(),
+  agentName: z.string().min(2),
+  agentSlug: z.string().min(2),
+  pageUrl: z.string().optional().or(z.literal(""))
+});
+
 export const bookingSchema = z.object({
   userId: z.string().uuid(),
   enquiryId: z.string().uuid(),

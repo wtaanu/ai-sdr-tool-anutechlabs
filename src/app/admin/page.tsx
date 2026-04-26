@@ -63,6 +63,7 @@ async function getDashboardData() {
       enquiries,
       bookings,
       emails,
+      openedInterests,
       recentEnquiries,
       consentLogs,
       recentBookings,
@@ -72,6 +73,7 @@ async function getDashboardData() {
       supabase.from("enquiries").select("id", { count: "exact", head: true }),
       supabase.from("bookings").select("id", { count: "exact", head: true }),
       supabase.from("email_logs").select("id", { count: "exact", head: true }).in("status", ["draft", "queued"]),
+      supabase.from("agent_interest_events").select("id", { count: "exact", head: true }).eq("status", "opened"),
       supabase
         .from("enquiries")
         .select("id,selected_agent_ids,custom_requirement,industry,business_type,automation_goal,ai_summary,ai_lead_score,ai_priority,status,created_at,public_users(full_name,email,mobile,country,company)")
@@ -97,6 +99,7 @@ async function getDashboardData() {
         enquiries: enquiries.count || 0,
         bookings: bookings.count || 0,
         emails: emails.count || 0,
+        openedInterests: openedInterests.count || 0,
         consentLogs: consentLogs.count || 0,
         dataRequests: dataRequests.count || 0
       },
@@ -111,6 +114,7 @@ async function getDashboardData() {
         enquiries: 0,
         bookings: 0,
         emails: 0,
+        openedInterests: 0,
         consentLogs: 0,
         dataRequests: 0
       },
@@ -138,7 +142,8 @@ export default async function AdminDashboardPage() {
     { label: "Verified users", value: String(dashboard.counts.verifiedUsers), note: "Profiles after OTP", icon: UsersRound },
     { label: "New enquiries", value: String(dashboard.counts.enquiries), note: "Website and custom requests", icon: Sparkles },
     { label: "Calls booked", value: String(dashboard.counts.bookings), note: "Consultations scheduled", icon: CalendarDays },
-    { label: "Emails queued", value: String(dashboard.counts.emails), note: "Drafts and follow-ups", icon: Mail }
+    { label: "Emails queued", value: String(dashboard.counts.emails), note: "Drafts and follow-ups", icon: Mail },
+    { label: "Opened interest", value: String(dashboard.counts.openedInterests), note: "Needs follow-back", icon: Sparkles }
   ];
 
   return (
@@ -157,6 +162,7 @@ export default async function AdminDashboardPage() {
               ["Overview", "/admin"],
               ["Client Acquisition", "/admin/client-acquisition"],
               ["Pipeline", "/admin/pipeline"],
+              ["Opened Interest", "/admin/interest-events"],
               ["Calls", "/admin/calls"],
               ["Emails", "/admin/emails"],
               ["Agents", "/admin/agents"],
