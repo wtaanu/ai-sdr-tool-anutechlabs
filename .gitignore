@@ -15,3 +15,6 @@ apps/api/dist/
 data/mysql/
 *.bak
 .env.example
+
+.vercel
+.env*.local

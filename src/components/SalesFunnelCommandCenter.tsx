@@ -16,6 +16,7 @@ type BridgeDashboard = {
 async function runAction(action: string, payload: Record<string, any> = {}) {
   const response = await fetch("/api/admin/client-acquisition/action", {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, payload })
   });
@@ -30,7 +31,11 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [sourceList, setSourceList] = useState("existing");
   const [limit, setLimit] = useState(50);
   const [message, setMessage] = useState("");
+  const [runningAction, setRunningAction] = useState("");
   const [activeDraft, setActiveDraft] = useState<any | null>(null);
+  const [prospectSearch, setProspectSearch] = useState("");
+  const [prospectStatus, setProspectStatus] = useState("All");
+  const [prospectSegment, setProspectSegment] = useState("All");
   const [isSegmentOpen, setIsSegmentOpen] = useState(false);
   const [newSegment, setNewSegment] = useState({
     label: "",
@@ -45,26 +50,71 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const drafts = dashboard?.drafts || [];
   const replies = dashboard?.replies || [];
   const stats = dashboard?.stats || {};
+  const filteredProspects = prospects.filter((prospect) => {
+    const haystack = `${prospect.company_name || ""} ${prospect.buyer_name || ""} ${prospect.email || ""} ${prospect.industry || ""} ${prospect.country || ""} ${prospect.segment || ""}`.toLowerCase();
+    const matchesSearch = !prospectSearch || haystack.includes(prospectSearch.toLowerCase());
+    const matchesStatus = prospectStatus === "All" || prospect.prospect_status === prospectStatus;
+    const matchesSegment = prospectSegment === "All" || prospect.segment === prospectSegment;
+    return matchesSearch && matchesStatus && matchesSegment;
+  });
+  const prospectStatuses = Array.from(new Set(prospects.map((prospect) => prospect.prospect_status).filter(Boolean)));
+  const prospectSegments = Array.from(new Set(prospects.map((prospect) => prospect.segment).filter(Boolean)));
 
   async function handleAction(action: string, payload: Record<string, any> = {}) {
     setMessage("");
+    setRunningAction(action);
     try {
       const result = await runAction(action, payload);
-      setMessage(result.error || `Done. ${result.draftsCreated ? `${result.draftsCreated} drafts created.` : ""}${result.migrated ? ` ${result.migrated} prospects synced.` : ""}`);
+      setMessage(result.error || `Done. ${result.draftsCreated ? `${result.draftsCreated} drafts created.` : ""}${result.migrated !== undefined ? ` ${result.migrated} prospects synced.` : ""}${result.generated !== undefined ? ` ${result.generated} prospects generated.` : ""}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Action failed.");
+    } finally {
+      setRunningAction("");
     }
   }
 
   async function createSegment() {
-    const result = await runAction("createSegment", newSegment);
+      const result = await runAction("createSegment", newSegment);
     setMessage(`Segment created: ${result.segment?.label || newSegment.label}. Refresh the page to use it in the selector.`);
     setIsSegmentOpen(false);
     setNewSegment({ label: "", targetCount: 100, apolloKeywords: "", targetTitles: "", targetLocations: "", notes: "" });
   }
 
   return (
-    <section className="mt-8 space-y-8">
+    <section className="mt-8 grid gap-8 xl:grid-cols-[320px_1fr]">
+      <aside className="space-y-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
+          <h2 className="text-xl font-black text-slate-950">Left panel actions</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Run only the actions you need. Results and progress appear below.</p>
+          <div className="mt-5 space-y-3">
+            <button className="w-full rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600" disabled={Boolean(runningAction)} onClick={() => void handleAction("migrateProspects")} type="button">
+              {runningAction === "migrateProspects" ? "Syncing valid sheet..." : "Sync valid sheet"}
+            </button>
+            <button className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm font-bold text-slate-800 hover:border-orange-400" disabled={Boolean(runningAction)} onClick={() => void handleAction("generateProspects", { mode: "new" })} type="button">
+              {runningAction === "generateProspects" ? "Generating prospects..." : "Run Apollo + score + verify"}
+            </button>
+            <button className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm font-bold text-slate-800 hover:border-orange-400" onClick={() => setIsSegmentOpen((current) => !current)} type="button">
+              Add segment
+            </button>
+          </div>
+          {message && <p className="mt-4 rounded-md bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">{message}</p>}
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
+          <h3 className="text-lg font-black text-slate-950">Recent email events</h3>
+          <div className="mt-4 space-y-3">
+            {(dashboard as any)?.emailEvents?.slice?.(0, 8)?.map((event: any) => (
+              <div key={`${event.draft_id}-${event.event_type}-${event.created_at}`} className="rounded-md bg-slate-50 p-3">
+                <p className="font-bold text-slate-950">{event.email || "Unknown recipient"}</p>
+                <p className="mt-1 text-xs text-orange-700">{event.event_type}</p>
+                <p className="mt-1 text-xs text-slate-500">{event.subject_line || "No subject"}</p>
+              </div>
+            )) || <p className="text-sm text-slate-500">No email events yet.</p>}
+          </div>
+        </div>
+      </aside>
+
+      <div className="space-y-8">
       <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
           <div>
@@ -76,12 +126,6 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               <p className="mt-3 rounded-md bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">Weekend sending is blocked. Draft/review can continue, but warm emails should send Monday-Friday.</p>
             )}
           </div>
-          <button className="rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600" onClick={() => void handleAction("migrateProspects")}>
-            Sync valid sheet prospects to Supabase
-          </button>
-          <button className="rounded-md border border-slate-300 px-4 py-3 text-sm font-bold text-slate-800 hover:border-orange-400" onClick={() => setIsSegmentOpen((current) => !current)} type="button">
-            Add segment
-          </button>
         </div>
 
         {isSegmentOpen && (
@@ -139,14 +183,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
           <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setLimit(Number(event.target.value))} type="number" value={limit} />
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
-          <button className="rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400" onClick={() => void handleAction("generateDrafts", { segment, mailType, sourceList, limit })}>
-            Generate AI drafts
-          </button>
-          <button className="rounded-md border border-slate-300 px-4 py-3 text-sm font-bold text-slate-800" onClick={() => void handleAction("generateProspects", { mode: "new" })}>
-            Run Apollo + score + verify
+          <button className="rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400 disabled:opacity-60" disabled={Boolean(runningAction)} onClick={() => void handleAction("generateDrafts", { segment, mailType, sourceList, limit })}>
+            {runningAction === "generateDrafts" ? "Generating AI drafts..." : "Generate AI drafts"}
           </button>
         </div>
-        {message && <p className="mt-4 rounded-md bg-slate-50 px-4 py-3 text-sm text-slate-700">{message}</p>}
       </div>
 
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
@@ -199,13 +239,24 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
       <div className="grid gap-8 xl:grid-cols-2">
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
           <h3 className="text-xl font-black text-slate-950">Prospects</h3>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setProspectSearch(event.target.value)} placeholder="Search company, email, industry" value={prospectSearch} />
+            <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setProspectSegment(event.target.value)} value={prospectSegment}>
+              <option>All</option>
+              {prospectSegments.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setProspectStatus(event.target.value)} value={prospectStatus}>
+              <option>All</option>
+              {prospectStatuses.map((item) => <option key={item}>{item}</option>)}
+            </select>
+          </div>
           <div className="mt-5 max-h-[520px] overflow-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="sticky top-0 bg-white text-xs uppercase tracking-[0.12em] text-slate-500">
                 <tr><th className="py-3 pr-4">Lead</th><th className="py-3 pr-4">Segment</th><th className="py-3 pr-4">Score</th><th className="py-3 pr-4">Status</th></tr>
               </thead>
               <tbody>
-                {prospects.map((prospect) => (
+                {filteredProspects.map((prospect) => (
                   <tr key={prospect.id} className="border-t border-slate-100">
                     <td className="py-3 pr-4"><p className="font-bold text-slate-950">{prospect.company_name || prospect.email}</p><p className="text-xs text-slate-500">{prospect.buyer_name} · {prospect.email}</p><p className="text-xs text-slate-500">{prospect.industry} · {prospect.country}</p></td>
                     <td className="py-3 pr-4 text-slate-700">{prospect.segment}</td>
@@ -213,6 +264,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                     <td className="py-3 pr-4 text-slate-700">{prospect.prospect_status}</td>
                   </tr>
                 ))}
+                {!filteredProspects.length && (
+                  <tr><td className="py-5 text-slate-500" colSpan={4}>No prospects match the selected filters.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -231,6 +285,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
             {!replies.length && <p className="text-sm text-slate-500">No replies captured yet.</p>}
           </div>
         </section>
+      </div>
       </div>
     </section>
   );

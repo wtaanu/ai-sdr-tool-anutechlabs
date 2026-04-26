@@ -63,6 +63,12 @@ export const dataRequestSchema = z.object({
   details: z.string().optional().or(z.literal(""))
 });
 
+export const contactQuerySchema = z.object({
+  email: z.string().email(),
+  query: z.string().min(10).max(3000),
+  pageUrl: z.string().optional().or(z.literal(""))
+});
+
 export const leadStatusSchema = z.object({
   status: z.enum(["New Lead", "Qualified", "Call Booked", "Call Done", "Proposal Sent", "Negotiation", "Won", "Lost"]),
   note: z.string().optional().or(z.literal(""))

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactUsFooter } from "@/components/ContactUsFooter";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,7 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ContactUsFooter />
+      </body>
     </html>
   );
 }

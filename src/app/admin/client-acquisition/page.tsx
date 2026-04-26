@@ -1,69 +1,7 @@
-import { existsSync } from "fs";
-import path from "path";
-import { ClientAcquisitionJobButton } from "@/components/ClientAcquisitionJobButton";
 import { SalesFunnelCommandCenter } from "@/components/SalesFunnelCommandCenter";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
-
-const defaultToolPath = "C:\\Users\\pawan\\Documents\\Codex\\My Sales Tool\\Code";
-
-const funnelActions = [
-  {
-    label: "Run Apollo search/import",
-    job: "import-leads",
-    command: "npm run run:import",
-    description: "Pull verified prospects from Apollo/API sources into the acquisition funnel."
-  },
-  {
-    label: "Score leads",
-    job: "score-leads",
-    command: "npm run run:score",
-    description: "Rank leads by fit, signals, ICP, and outreach priority."
-  },
-  {
-    label: "Verify emails",
-    job: "verify-emails",
-    command: "npm run run:verify",
-    description: "Validate deliverability before sending outreach."
-  },
-  {
-    label: "Generate drafts",
-    job: "generate-drafts",
-    command: "npm run run:drafts",
-    description: "Prepare personalized email drafts with source tracking."
-  },
-  {
-    label: "Review next 50",
-    job: "review-next-50",
-    command: "npm run review:next -- 50",
-    description: "Prepare the next batch of 50 emails for approval."
-  },
-  {
-    label: "Send reviewed drafts",
-    job: "send-reviewed-drafts",
-    command: "npm run run:send",
-    description: "Send approved emails through the existing Sales Tool workflow."
-  },
-  {
-    label: "Generate follow-ups",
-    job: "generate-followups",
-    command: "npm run run:followups",
-    description: "Create follow-up drafts for leads that did not reply yet."
-  },
-  {
-    label: "Read inbox replies",
-    job: "read-inbox-replies",
-    command: "npm run run:replies",
-    description: "Read replies and classify interest for follow-up or call booking."
-  },
-  {
-    label: "Sync CRM records",
-    job: "sync-crm-records",
-    command: "npm run run:crm",
-    description: "Move active prospects into your CRM/client acquisition records."
-  }
-];
 
 const sourceLabels: Record<string, string> = {
   ai_sdr: "AI SDR website",
@@ -103,10 +41,6 @@ type SharedEvent = {
   event_type: string;
   created_at: string | null;
 };
-
-function fileStatus(toolPath: string, relativePath: string) {
-  return existsSync(path.join(toolPath, relativePath));
-}
 
 async function getBridgeHealth(apiUrl: string) {
   if (!apiUrl) {
@@ -218,19 +152,16 @@ function formatDate(value: string | null) {
 }
 
 export default async function ClientAcquisitionPage() {
-  const toolPath = process.env.CLIENT_ACQUISITION_TOOL_PATH || defaultToolPath;
   const apiUrl = process.env.CLIENT_ACQUISITION_API_URL || "";
   const [bridgeHealth, sharedFunnel, bridgeSalesDashboard] = await Promise.all([getBridgeHealth(apiUrl), getSharedFunnelData(), getBridgeSalesDashboard(apiUrl)]);
   const futureSourceCount = Math.max(sharedFunnel.stats.totalDrafts - sharedFunnel.stats.aiSdrDrafts - sharedFunnel.stats.apolloDrafts, 0);
+  const mergedDashboard = bridgeSalesDashboard ? { ...bridgeSalesDashboard, emailEvents: sharedFunnel.events } : { emailEvents: sharedFunnel.events };
   const readiness = [
-    ["Tool folder", existsSync(toolPath), toolPath],
-    ["Package config", fileStatus(toolPath, "package.json"), "package.json"],
-    ["Apollo service", fileStatus(toolPath, "src-node\\services\\apollo.js"), "src-node/services/apollo.js"],
-    ["Draft generator", fileStatus(toolPath, "src-node\\jobs\\generate-drafts.js"), "src-node/jobs/generate-drafts.js"],
-    ["Follow-up generator", fileStatus(toolPath, "src-node\\jobs\\generate-followups.js"), "src-node/jobs/generate-followups.js"],
-    ["Inbox replies", fileStatus(toolPath, "src-node\\jobs\\read-inbox-replies.js"), "src-node/jobs/read-inbox-replies.js"],
-    ["Shared Supabase", !sharedFunnel.error, sharedFunnel.error || "client_acquisition_* tables ready"],
-    ["API URL", Boolean(apiUrl), apiUrl || "Not configured yet"]
+    ["Railway bridge", Boolean(bridgeHealth?.ok), bridgeHealth?.service || "Bridge not reachable"],
+    ["Email provider", Boolean(bridgeHealth?.emailProvider?.activeProvider && bridgeHealth.emailProvider.activeProvider !== "none"), bridgeHealth?.emailProvider?.activeProvider || "Not detected"],
+    ["Shared Supabase", Boolean(bridgeHealth?.sharedSupabaseReady || !sharedFunnel.error), sharedFunnel.error || "Shared tables responding"],
+    ["Sales dashboard API", Boolean(bridgeSalesDashboard && !bridgeSalesDashboard.error), bridgeSalesDashboard?.error || "Dashboard data loaded"],
+    ["AI SDR bridge URL", Boolean(apiUrl), apiUrl || "CLIENT_ACQUISITION_API_URL missing"]
   ];
 
   return (
@@ -267,7 +198,7 @@ export default async function ClientAcquisitionPage() {
           ))}
         </div>
 
-        <SalesFunnelCommandCenter dashboard={bridgeSalesDashboard} />
+        <SalesFunnelCommandCenter dashboard={mergedDashboard} />
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr]">
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
@@ -328,23 +259,6 @@ export default async function ClientAcquisitionPage() {
               </table>
             </div>
           </article>
-        </section>
-
-        <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
-          <h2 className="text-xl font-black text-slate-950">Funnel actions</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            These buttons call the local My Sales Tool bridge. The bridge writes job runs, outreach drafts, and send events back into the same Supabase database.
-          </p>
-          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {funnelActions.map((action) => (
-              <article key={action.label} className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                <h3 className="font-black text-slate-950">{action.label}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{action.description}</p>
-                <code className="mt-3 block rounded-md bg-slate-950 p-3 text-xs text-orange-300">{action.command}</code>
-                <ClientAcquisitionJobButton job={action.job} />
-              </article>
-            ))}
-          </div>
         </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
