@@ -82,7 +82,7 @@ This code expires in 10 minutes. Once verified, your profile will be created and
 
       return NextResponse.json(
         {
-          error: "OTP email could not be sent. Please check SMTP/Railway email bridge settings.",
+          error: `OTP email could not be sent. ${emailResult.detail}`,
           traceId
         },
         { status: 502 }
