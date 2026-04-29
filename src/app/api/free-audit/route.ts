@@ -11,22 +11,34 @@ export async function POST(request: Request) {
   try {
     const body = freeAuditSchema.parse(await request.json());
     const supabase = getSupabaseAdminClient();
-    await logTransaction({ traceId, eventName: "free_audit_started", route: "/api/free-audit", userId: body.userId, status: "started" });
+    const email = body.email.toLowerCase().trim();
+    await logTransaction({ traceId, eventName: "free_audit_started", route: "/api/free-audit", email, status: "started" });
 
+    const fullName = body.fullName?.trim() || email.split("@")[0] || "Free Audit Lead";
     const { data: user, error: userError } = await supabase
       .from("public_users")
-      .select("id,email,full_name,country,company,is_email_verified")
-      .eq("id", body.userId)
-      .eq("is_email_verified", true)
-      .maybeSingle();
+      .upsert(
+        {
+          full_name: fullName,
+          email,
+          mobile: "not provided",
+          country: body.targetMarket || "Unknown",
+          company: body.businessType,
+          website: body.companyWebsite || null,
+          source: "free_audit"
+        },
+        { onConflict: "email" }
+      )
+      .select("id,email,full_name,country,company")
+      .single();
 
     if (userError || !user) {
-      await logTransaction({ traceId, level: "warn", eventName: "free_audit_unverified_user", route: "/api/free-audit", userId: body.userId, status: "blocked" });
-      return NextResponse.json({ error: "Verified profile not found. Please subscribe and verify first." }, { status: 403 });
+      await logTransaction({ traceId, level: "error", eventName: "free_audit_user_upsert_failed", route: "/api/free-audit", email, status: "failed", detail: userError?.message });
+      return NextResponse.json({ error: userError?.message || "Unable to create user profile." }, { status: 500 });
     }
 
     await supabase.from("consent_logs").insert({
-      user_id: body.userId,
+      user_id: user.id,
       consent_type: "free_ai_audit",
       status: "accepted",
       country: user.country,
@@ -57,7 +69,7 @@ export async function POST(request: Request) {
     const { data: audit, error: auditError } = await supabase
       .from("free_audit_requests")
       .insert({
-        user_id: body.userId,
+        user_id: user.id,
         industry: body.industry,
         business_type: body.businessType,
         company_website: body.companyWebsite || null,
@@ -80,12 +92,12 @@ export async function POST(request: Request) {
       .single();
 
     if (auditError) {
-      await logTransaction({ traceId, level: "error", eventName: "free_audit_insert_failed", route: "/api/free-audit", userId: body.userId, email: user.email, status: "failed", detail: auditError.message });
+      await logTransaction({ traceId, level: "error", eventName: "free_audit_insert_failed", route: "/api/free-audit", userId: user.id, email: user.email, status: "failed", detail: auditError.message });
       return NextResponse.json({ error: auditError.message }, { status: 500 });
     }
 
     await supabase.from("activity_timeline").insert({
-      user_id: body.userId,
+      user_id: user.id,
       activity_type: "free_audit_completed",
       details: {
         auditId: audit.id,
@@ -128,7 +140,7 @@ The PDF report is attached. It includes recommended AI agents, analytics, roadma
 
     await supabase.from("free_audit_requests").update({ email_status: emailResult.status }).eq("id", audit.id);
     await supabase.from("email_logs").insert({
-      user_id: body.userId,
+      user_id: user.id,
       email_type: "free_audit_report",
       subject: "Your free AI automation audit report",
       status: emailResult.status,
@@ -136,7 +148,7 @@ The PDF report is attached. It includes recommended AI agents, analytics, roadma
       sent_at: emailResult.sent ? new Date().toISOString() : null
     });
 
-    await logTransaction({ traceId, eventName: "free_audit_completed", route: "/api/free-audit", userId: body.userId, email: user.email, status: "completed", metadata: { auditId: audit.id, emailStatus: emailResult.status, score: report.opportunityScore } });
+    await logTransaction({ traceId, eventName: "free_audit_completed", route: "/api/free-audit", userId: user.id, email: user.email, status: "completed", metadata: { auditId: audit.id, emailStatus: emailResult.status, score: report.opportunityScore } });
 
     return NextResponse.json({ ok: true, traceId, auditId: audit.id, report });
   } catch (error) {

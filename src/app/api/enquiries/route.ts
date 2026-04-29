@@ -8,16 +8,27 @@ export async function POST(request: Request) {
   try {
     const body = enquirySchema.parse(await request.json());
     const supabase = getSupabaseAdminClient();
+    const email = body.email.toLowerCase().trim();
+    const fullName = body.fullName?.trim() || email.split("@")[0] || "Agent Interest Lead";
 
     const { data: user, error: userError } = await supabase
       .from("public_users")
-      .select("id,email,full_name,is_email_verified")
-      .eq("id", body.userId)
-      .eq("is_email_verified", true)
-      .maybeSingle();
+      .upsert(
+        {
+          full_name: fullName,
+          email,
+          mobile: body.mobile || "not provided",
+          country: body.targetMarket || "Unknown",
+          company: body.businessType,
+          source: "agent_interest"
+        },
+        { onConflict: "email" }
+      )
+      .select("id,email,full_name")
+      .single();
 
     if (userError || !user) {
-      return NextResponse.json({ error: "Verified profile not found. Please subscribe and verify first." }, { status: 403 });
+      return NextResponse.json({ error: userError?.message || "Unable to create user profile." }, { status: 500 });
     }
 
     const analysis = await analyzeLead({
@@ -37,7 +48,7 @@ export async function POST(request: Request) {
     const { data: enquiry, error: enquiryError } = await supabase
       .from("enquiries")
       .insert({
-        user_id: body.userId,
+        user_id: user.id,
         selected_agent_ids: body.selectedAgentIds,
         custom_requirement: body.customRequirement || null,
         industry: body.industry,
@@ -62,7 +73,7 @@ export async function POST(request: Request) {
     }
 
     await supabase.from("activity_timeline").insert({
-      user_id: body.userId,
+      user_id: user.id,
       enquiry_id: enquiry.id,
       activity_type: "interest_submitted",
       details: {
@@ -82,7 +93,7 @@ export async function POST(request: Request) {
           submitted_at: new Date().toISOString(),
           enquiry_id: enquiry.id
         })
-        .eq("user_id", body.userId)
+        .eq("user_id", user.id)
         .in("agent_id", body.selectedAgentIds)
         .eq("status", "opened")
         .is("submitted_at", null);
@@ -108,7 +119,7 @@ Our system has captured your business context and initial requirement. The next 
     });
 
     await supabase.from("email_logs").insert({
-      user_id: body.userId,
+      user_id: user.id,
       enquiry_id: enquiry.id,
       email_type: "client_interest_confirmation",
       subject: "We received your AI agent requirement",
@@ -151,7 +162,7 @@ ${analysis.callAgenda.join("\n")}`
       : { status: "draft", sent: false, detail: "OWNER_NOTIFICATION_EMAIL is not configured." };
 
     await supabase.from("email_logs").insert({
-      user_id: body.userId,
+      user_id: user.id,
       enquiry_id: enquiry.id,
       email_type: "owner_new_interest_notification",
       subject: `New AI SDR interest: ${body.industry}`,
@@ -160,7 +171,7 @@ ${analysis.callAgenda.join("\n")}`
       sent_at: ownerEmailResult.sent ? new Date().toISOString() : null
     });
 
-    return NextResponse.json({ ok: true, enquiry });
+    return NextResponse.json({ ok: true, enquiry, user: { id: user.id, email: user.email, full_name: user.full_name } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to submit enquiry.";
     return NextResponse.json({ error: message }, { status: 400 });

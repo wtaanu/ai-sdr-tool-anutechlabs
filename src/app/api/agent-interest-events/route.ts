@@ -15,24 +15,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Agent not found." }, { status: 404 });
     }
 
+    if (!body.userId && !body.email) {
+      return NextResponse.json({ error: "Email is required to track interest." }, { status: 400 });
+    }
+
     const supabase = getSupabaseAdminClient();
-    const { data: user, error: userError } = await supabase
-      .from("public_users")
-      .select("id,email,full_name,is_email_verified")
-      .eq("id", body.userId)
-      .eq("is_email_verified", true)
-      .maybeSingle();
+    const userQuery = body.userId
+      ? supabase.from("public_users").select("id,email,full_name").eq("id", body.userId).maybeSingle()
+      : supabase
+          .from("public_users")
+          .upsert(
+            {
+              full_name: body.email?.split("@")[0] || "Agent Interest Lead",
+              email: body.email?.toLowerCase().trim(),
+              mobile: "not provided",
+              country: "Unknown",
+              source: "agent_interest_opened"
+            },
+            { onConflict: "email" }
+          )
+          .select("id,email,full_name")
+          .single();
+    const { data: user, error: userError } = await userQuery;
 
     if (userError || !user) {
       await logTransaction({ traceId, level: "warn", eventName: "agent_interest_open_unverified", route: "/api/agent-interest-events", userId: body.userId, status: "blocked" });
-      return NextResponse.json({ error: "Verified profile not found." }, { status: 403 });
+      return NextResponse.json({ error: userError?.message || "Unable to create profile." }, { status: 500 });
     }
 
     const followupDueAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const { data: event, error: eventError } = await supabase
       .from("agent_interest_events")
       .insert({
-        user_id: body.userId,
+        user_id: user.id,
         agent_id: agent.id,
         agent_name: agent.name,
         agent_slug: agent.slug,
@@ -49,7 +64,7 @@ export async function POST(request: Request) {
     }
 
     await supabase.from("activity_timeline").insert({
-      user_id: body.userId,
+      user_id: user.id,
       activity_type: "agent_interest_opened",
       details: {
         eventId: event.id,
@@ -60,7 +75,7 @@ export async function POST(request: Request) {
       }
     });
 
-    await logTransaction({ traceId, eventName: "agent_interest_opened", route: "/api/agent-interest-events", userId: body.userId, email: user.email, status: "completed", metadata: { eventId: event.id, agentId: agent.id } });
+    await logTransaction({ traceId, eventName: "agent_interest_opened", route: "/api/agent-interest-events", userId: user.id, email: user.email, status: "completed", metadata: { eventId: event.id, agentId: agent.id } });
 
     return NextResponse.json({ ok: true, event });
   } catch (error) {

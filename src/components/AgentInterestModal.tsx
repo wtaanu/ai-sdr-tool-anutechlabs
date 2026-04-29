@@ -3,7 +3,6 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 import type { Agent } from "@/data/agents";
-import { openSubscribeGate } from "@/components/SubscribeGate";
 
 const categoryUseCases: Record<string, string[]> = {
   "Lead Generation": ["Lead qualification", "Follow-up automation", "Call booking", "CRM movement"],
@@ -31,8 +30,12 @@ export function AgentInterestModal({
   const [message, setMessage] = useState("");
   const [bookingMessage, setBookingMessage] = useState("");
   const [bookingComplete, setBookingComplete] = useState(false);
-  const [submittedEnquiry, setSubmittedEnquiry] = useState<{ id: string; score: number; priority: string } | null>(null);
+  const [interestLogged, setInterestLogged] = useState(false);
+  const [submittedEnquiry, setSubmittedEnquiry] = useState<{ id: string; userId: string; score: number; priority: string } | null>(null);
   const [form, setForm] = useState({
+    email: "",
+    fullName: "",
+    mobile: "",
     industry: "",
     businessType: "",
     businessSize: "",
@@ -58,24 +61,35 @@ export function AgentInterestModal({
     setBookingForm((current) => ({ ...current, [field]: value }));
   }
 
+  async function logOpenedInterest() {
+    if (interestLogged || !form.email.includes("@")) return;
+    setInterestLogged(true);
+    try {
+      await fetch("/api/agent-interest-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          agentId: agent.id,
+          agentName: agent.name,
+          agentSlug: agent.slug,
+          pageUrl: window.location.pathname
+        })
+      });
+    } catch {
+      setInterestLogged(false);
+    }
+  }
+
   async function submitInterest() {
     setIsSubmitting(true);
     setMessage("");
 
     try {
-      const rawUser = window.localStorage.getItem("anutechlabs_verified_user");
-      const user = rawUser ? JSON.parse(rawUser) as { id?: string } : null;
-
-      if (!user?.id) {
-        openSubscribeGate();
-        throw new Error("Please subscribe and verify your email before submitting interest.");
-      }
-
       const response = await fetch("/api/enquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
           selectedAgentIds: agent.id === 50 ? [] : [agent.id],
           ...form,
           customRequirement: form.customRequirement || (agent.id === 50 ? form.automationGoal : "")
@@ -89,6 +103,7 @@ export function AgentInterestModal({
 
       setSubmittedEnquiry({
         id: result.enquiry.id,
+        userId: result.user.id,
         score: result.enquiry.ai_lead_score,
         priority: result.enquiry.ai_priority
       });
@@ -105,10 +120,7 @@ export function AgentInterestModal({
     setBookingMessage("");
 
     try {
-      const rawUser = window.localStorage.getItem("anutechlabs_verified_user");
-      const user = rawUser ? JSON.parse(rawUser) as { id?: string } : null;
-
-      if (!user?.id || !submittedEnquiry?.id) {
+      if (!submittedEnquiry?.userId || !submittedEnquiry?.id) {
         throw new Error("Submit your interest before requesting a call.");
       }
 
@@ -116,7 +128,7 @@ export function AgentInterestModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
+          userId: submittedEnquiry.userId,
           enquiryId: submittedEnquiry.id,
           ...bookingForm
         })
@@ -197,6 +209,11 @@ export function AgentInterestModal({
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-orange-400">show interest</p>
             <h3 className="mt-3 text-2xl font-black text-white">Tell us where this agent fits.</h3>
             <div className={`mt-5 space-y-4 ${submittedEnquiry ? "opacity-55" : ""}`}>
+              <input className="w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400" onBlur={() => void logOpenedInterest()} onChange={(event) => updateField("email", event.target.value)} placeholder="Email address" required type="email" value={form.email} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input className="w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400" onChange={(event) => updateField("fullName", event.target.value)} placeholder="Name optional" value={form.fullName} />
+                <input className="w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400" onChange={(event) => updateField("mobile", event.target.value)} placeholder="Mobile optional" value={form.mobile} />
+              </div>
               <input className="w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400" onChange={(event) => updateField("industry", event.target.value)} placeholder="Industry type" required value={form.industry} />
               <input className="w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400" onChange={(event) => updateField("businessType", event.target.value)} placeholder="Business type" required value={form.businessType} />
               <div className="grid gap-4 sm:grid-cols-2">

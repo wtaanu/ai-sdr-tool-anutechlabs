@@ -3,17 +3,11 @@
 import { useState } from "react";
 import type { Agent } from "@/data/agents";
 import { AgentInterestModal } from "@/components/AgentInterestModal";
-import { isVisitorVerified, openSubscribeGate } from "@/components/SubscribeGate";
 
 export function AgentDetailAction({ agent }: { agent: Agent }) {
   const [isOpen, setIsOpen] = useState(false);
 
   function openInterest() {
-    if (!isVisitorVerified()) {
-      openSubscribeGate();
-      return;
-    }
-
     setIsOpen(true);
   }
 

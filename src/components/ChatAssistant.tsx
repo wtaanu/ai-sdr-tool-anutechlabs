@@ -2,17 +2,11 @@
 
 import { useState } from "react";
 import { Bot, X } from "lucide-react";
-import { isVisitorVerified, openSubscribeGate } from "@/components/SubscribeGate";
 
 export function ChatAssistant() {
   const [isOpen, setIsOpen] = useState(false);
 
   function openChat() {
-    if (!isVisitorVerified()) {
-      openSubscribeGate();
-      return;
-    }
-
     setIsOpen(true);
   }
 
@@ -38,7 +32,7 @@ export function ChatAssistant() {
             </button>
           </div>
           <div className="mt-4 rounded-md bg-black/40 p-4 text-sm leading-6 text-slate-300">
-            The live chatbot will connect here once traffic starts converting. For now, use any agent's Show Interest flow to submit a verified requirement.
+            The live chatbot will connect here once traffic starts converting. For now, use any agent's Show Interest flow or Free Audit to share your requirement.
           </div>
           <a className="mt-4 block rounded-md bg-orange-500 px-4 py-3 text-center text-sm font-bold text-white" href="/ai-agents">
             Explore agents

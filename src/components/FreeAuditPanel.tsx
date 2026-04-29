@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { BarChart3, FileText, MailCheck, Sparkles } from "lucide-react";
-import { isVisitorVerified, openSubscribeGate } from "@/components/SubscribeGate";
 
 type AuditReport = {
   headline: string;
@@ -64,6 +63,8 @@ function normalizeAuditReport(value: RawAuditReport): AuditReport {
 }
 
 const initialForm = {
+  email: "",
+  fullName: "",
   industry: "",
   businessType: "",
   companyWebsite: "",
@@ -93,23 +94,10 @@ export function FreeAuditPanel() {
     setMessage("");
 
     try {
-      if (!isVisitorVerified()) {
-        openSubscribeGate();
-        throw new Error("Verify your email first. Your free audit will unlock immediately after OTP verification.");
-      }
-
-      const rawUser = window.localStorage.getItem("anutechlabs_verified_user");
-      const user = rawUser ? JSON.parse(rawUser) as { id?: string } : null;
-
-      if (!user?.id) {
-        openSubscribeGate();
-        throw new Error("Verified profile not found. Please verify again.");
-      }
-
       const response = await fetch("/api/free-audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, userId: user.id })
+        body: JSON.stringify(form)
       });
       let result: { error?: string; report?: RawAuditReport } = {};
       try {
@@ -162,6 +150,8 @@ export function FreeAuditPanel() {
 
           <form className="rounded-lg border border-slate-200 bg-mist p-5 shadow-soft" onSubmit={(event) => { event.preventDefault(); void submitAudit(); }}>
             <div className="grid gap-4 sm:grid-cols-2">
+              <input className="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateField("email", event.target.value)} placeholder="Email address" required type="email" value={form.email} />
+              <input className="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateField("fullName", event.target.value)} placeholder="Name optional" value={form.fullName} />
               <input className="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateField("industry", event.target.value)} placeholder="Industry" required value={form.industry} />
               <input className="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateField("businessType", event.target.value)} placeholder="Business type" required value={form.businessType} />
               <input className="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateField("companyWebsite", event.target.value)} placeholder="Website optional" value={form.companyWebsite} />

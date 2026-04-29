@@ -20,7 +20,10 @@ export const adminLoginSchema = z.object({
 });
 
 export const enquirySchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.string().uuid().optional(),
+  email: z.string().email(),
+  fullName: z.string().optional().or(z.literal("")),
+  mobile: z.string().optional().or(z.literal("")),
   selectedAgentIds: z.array(z.number().int()).default([]),
   customRequirement: z.string().optional().or(z.literal("")),
   industry: z.string().min(2),
@@ -35,7 +38,8 @@ export const enquirySchema = z.object({
 });
 
 export const agentInterestOpenSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.string().uuid().optional(),
+  email: z.string().email().optional(),
   agentId: z.number().int().positive(),
   agentName: z.string().min(2),
   agentSlug: z.string().min(2),
@@ -85,7 +89,9 @@ export const dataRequestStatusSchema = z.object({
 });
 
 export const freeAuditSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.string().uuid().optional(),
+  email: z.string().email(),
+  fullName: z.string().optional().or(z.literal("")),
   industry: z.string().min(2),
   businessType: z.string().min(2),
   companyWebsite: z.string().optional().or(z.literal("")),

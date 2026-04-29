@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Agent } from "@/data/agents";
 import { AgentInterestModal } from "@/components/AgentInterestModal";
-import { isVisitorVerified, openSubscribeGate } from "@/components/SubscribeGate";
 import { getAgentBusinessValues, getAgentProblems } from "@/lib/agentDetails";
 
 export function AgentCard({ agent }: { agent: Agent }) {
@@ -11,27 +10,6 @@ export function AgentCard({ agent }: { agent: Agent }) {
   const businessValue = getAgentBusinessValues(agent)[0];
 
   function showInterest() {
-    if (!isVisitorVerified()) {
-      openSubscribeGate();
-      return;
-    }
-
-    const rawUser = window.localStorage.getItem("anutechlabs_verified_user");
-    const user = rawUser ? JSON.parse(rawUser) as { id?: string } : null;
-    if (user?.id) {
-      void fetch("/api/agent-interest-events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          agentId: agent.id,
-          agentName: agent.name,
-          agentSlug: agent.slug,
-          pageUrl: window.location.pathname
-        })
-      });
-    }
-
     setIsOpen(true);
   }
 

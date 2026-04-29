@@ -1,6 +1,5 @@
 import { ArrowRight, Bot, CalendarCheck, CheckCircle2, Globe2, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
 import { AgentCard } from "@/components/AgentCard";
-import { SignupPanel } from "@/components/SignupPanel";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { FreeAuditPanel } from "@/components/FreeAuditPanel";
@@ -51,8 +50,8 @@ export default function Home() {
               social automation, email, finance, compliance, operations, and custom workflows.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-bold text-white" href="#start">
-                Verify and explore <ArrowRight size={16} />
+              <a className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-bold text-white" href="#free-audit">
+                Get free audit <ArrowRight size={16} />
               </a>
               <a className="rounded-md bg-orange-500 px-5 py-3 text-sm font-bold text-white" href="#free-audit">
                 Get free audit today
@@ -62,7 +61,7 @@ export default function Home() {
               </a>
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              {["Verified access", "AI lead scoring", "CRM-ready pipeline"].map((item) => (
+              {["Email-first tracking", "AI lead scoring", "CRM-ready pipeline"].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <CheckCircle2 className="text-orange-500" size={18} />
                   {item}
@@ -70,8 +69,15 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div id="start">
-            <SignupPanel />
+          <div id="start" className="rounded-lg border border-orange-200 bg-white p-6 shadow-soft">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">start here</p>
+            <h2 className="mt-3 text-3xl font-black text-slate-950">Get your free audit first.</h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              No signup gate. Share your email inside the free audit or show-interest form, and AI SDR will create your profile from that action.
+            </p>
+            <a className="mt-5 inline-flex rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white" href="#free-audit">
+              Start free audit
+            </a>
           </div>
         </div>
       </section>
