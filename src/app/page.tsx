@@ -1,9 +1,8 @@
-import { ArrowRight, Bot, CalendarCheck, CheckCircle2, Globe2, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, CalendarCheck, CheckCircle2, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
 import { AgentCard } from "@/components/AgentCard";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { FreeAuditPanel } from "@/components/FreeAuditPanel";
-import { PolicyLinks } from "@/components/PolicyModal";
 import { agents, categories } from "@/data/agents";
 
 const featuredAgents = agents.slice(0, 12);
@@ -35,21 +34,17 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="bg-mist py-16 lg:py-24">
-        <div className="section-shell grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="bg-mist py-10 lg:py-14">
+        <div className="section-shell grid items-center gap-7 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-orange-700">
-              <Globe2 size={16} />
-              Built for India, US, Europe, Asia, and global clients
-            </div>
-            <h1 className="max-w-4xl text-5xl font-black leading-tight text-slate-950 md:text-6xl">
+            <h1 className="max-w-4xl text-4xl font-black leading-tight text-slate-950 md:text-5xl">
               AI SDR agents that capture, qualify, follow up, and book client calls.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-650">
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-650">
               A verified lead portal for businesses searching for AI agents across sales, LinkedIn, Meta,
               social automation, email, finance, compliance, operations, and custom workflows.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <a className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-bold text-white" href="#free-audit">
                 Get free audit <ArrowRight size={16} />
               </a>
@@ -60,7 +55,7 @@ export default function Home() {
                 View agent categories
               </a>
             </div>
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            <div className="mt-7 grid gap-3 sm:grid-cols-3">
               {["Email-first tracking", "AI lead scoring", "CRM-ready pipeline"].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <CheckCircle2 className="text-orange-500" size={18} />
@@ -69,7 +64,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div id="start" className="rounded-lg border border-orange-200 bg-white p-6 shadow-soft">
+          <div id="start" className="rounded-lg border border-orange-200 bg-white p-5 shadow-soft">
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">start here</p>
             <h2 className="mt-3 text-3xl font-black text-slate-950">Get your free audit first.</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600">
@@ -82,7 +77,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-14">
+      <section className="py-10">
         <div className="section-shell grid gap-4 md:grid-cols-4">
           {[
             { icon: Sparkles, label: "Custom AI roadmap", text: "Understand which automation can improve your sales and operations first." },
@@ -211,12 +206,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="section-shell flex flex-col justify-between gap-4 text-sm text-slate-600 md:flex-row md:items-center">
-          <p className="font-semibold text-slate-800">Copyright AnutechLabs 2026</p>
-          <PolicyLinks />
-        </div>
-      </footer>
     </main>
   );
 }

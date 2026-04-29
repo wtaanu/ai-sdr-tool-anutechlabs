@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactUsFooter } from "@/components/ContactUsFooter";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body>
         {children}
         <ContactUsFooter />
+        <SiteFooter />
       </body>
     </html>
   );

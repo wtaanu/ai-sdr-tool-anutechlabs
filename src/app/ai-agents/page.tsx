@@ -1,7 +1,6 @@
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { AgentCatalogue } from "@/components/AgentCatalogue";
-import { PolicyLinks } from "@/components/PolicyModal";
 import { agents, categories } from "@/data/agents";
 
 export const metadata = {
@@ -38,13 +37,6 @@ export default function AgentsPage() {
       </section>
 
       <AgentCatalogue agents={agents} categories={categories} />
-
-      <footer className="border-t border-orange-500/20 bg-black py-8">
-        <div className="section-shell flex flex-col justify-between gap-4 text-sm text-slate-400 md:flex-row md:items-center">
-          <p className="font-semibold text-white">Copyright AnutechLabs 2026</p>
-          <PolicyLinks light />
-        </div>
-      </footer>
     </main>
   );
 }

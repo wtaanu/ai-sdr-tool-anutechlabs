@@ -2,7 +2,6 @@ import { ArrowRight, Bot, Home } from "lucide-react";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { FreeAuditPanel } from "@/components/FreeAuditPanel";
-import { PolicyLinks } from "@/components/PolicyModal";
 
 export const metadata = {
   title: "Free AI Automation Audit | AI SDR by AnutechLabs",
@@ -61,13 +60,6 @@ export default function FreeAuditLandingPage() {
           </a>
         </div>
       </section>
-
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="section-shell flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <p className="font-semibold text-slate-800">Copyright AnutechLabs 2026</p>
-          <PolicyLinks />
-        </div>
-      </footer>
     </main>
   );
 }
