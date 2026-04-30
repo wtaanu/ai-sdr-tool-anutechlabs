@@ -6,6 +6,8 @@ import { createTraceId, logTransaction } from "@/lib/transactionLog";
 const allowedActions: Record<string, string> = {
   migrateProspects: "/api/prospects/migrate-sheets",
   generateProspects: "/api/prospects/generate",
+  createManualProspect: "/api/prospects/manual",
+  purgeFailedProspects: "/api/prospects/purge-failed",
   generateDrafts: "/api/campaigns/generate-drafts",
   reviewDraft: "/api/drafts/review",
   sendDraft: "/api/drafts/send",

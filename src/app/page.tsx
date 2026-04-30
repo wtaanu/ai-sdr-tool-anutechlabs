@@ -22,7 +22,6 @@ export default function Home() {
           </a>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
             <a href="#agents">Agents</a>
-            <a href="/free-audit">Free Audit</a>
             <a href="#workflow">Workflow</a>
             <a href="#about">About</a>
             <a href="#privacy">Privacy</a>
