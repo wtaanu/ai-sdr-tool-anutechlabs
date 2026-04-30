@@ -2,6 +2,7 @@ import { BarChart3, CalendarDays, Mail, ShieldCheck, Sparkles, UsersRound } from
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { agents } from "@/data/agents";
 import { BookingStatusControl, LeadStatusControl, LogoutButton } from "@/components/AdminActions";
+import { PublicVideoAdminForm } from "@/components/PublicVideoAdminForm";
 
 const pipeline = ["New Lead", "Qualified", "Call Booked", "Call Done", "Proposal Sent", "Negotiation", "Won"];
 
@@ -67,7 +68,8 @@ async function getDashboardData() {
       recentEnquiries,
       consentLogs,
       recentBookings,
-      dataRequests
+      dataRequests,
+      publicVideos
     ] = await Promise.all([
       supabase.from("public_users").select("id", { count: "exact", head: true }).eq("is_email_verified", true),
       supabase.from("enquiries").select("id", { count: "exact", head: true }),
@@ -85,7 +87,8 @@ async function getDashboardData() {
         .select("id,preferred_time,timezone,status,meeting_link,enquiries(industry,public_users(full_name,email,country))")
         .order("created_at", { ascending: false })
         .limit(5),
-      supabase.from("data_requests").select("id", { count: "exact", head: true }).eq("status", "new")
+      supabase.from("data_requests").select("id", { count: "exact", head: true }).eq("status", "new"),
+      supabase.from("learning_videos").select("id,title,tag,youtube_url,created_at").eq("is_published", true).order("created_at", { ascending: false }).limit(5)
     ]);
 
     const normalizedRecentEnquiries = ((recentEnquiries.data || []) as unknown as SupabaseEnquiryRow[]).map((enquiry) => ({
@@ -105,6 +108,7 @@ async function getDashboardData() {
       },
       recentEnquiries: normalizedRecentEnquiries,
       recentBookings: (recentBookings.data || []) as unknown as BookingRow[],
+      publicVideos: publicVideos.data || [],
       error: recentEnquiries.error?.message
     };
   } catch (error) {
@@ -120,6 +124,7 @@ async function getDashboardData() {
       },
       recentEnquiries: [] as EnquiryRow[],
       recentBookings: [] as BookingRow[],
+      publicVideos: [],
       error: error instanceof Error ? error.message : "Dashboard data is unavailable."
     };
   }
@@ -161,6 +166,8 @@ export default async function AdminDashboardPage() {
             {[
               ["Overview", "/admin"],
               ["Client Acquisition", "/admin/client-acquisition"],
+              ["Public Videos", "/videos"],
+              ["Public Blogs", "/blogs"],
               ["Pipeline", "/admin/pipeline"],
               ["Opened Interest", "/admin/interest-events"],
               ["Calls", "/admin/calls"],
@@ -226,6 +233,23 @@ export default async function AdminDashboardPage() {
                 <p>Unsubscribed users: 0</p>
                 <p>Data requests: {dashboard.counts.dataRequests}</p>
                 <p>Privacy policy version: draft</p>
+              </div>
+            </section>
+          </div>
+
+          <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_0.8fr]">
+            <PublicVideoAdminForm />
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
+              <h2 className="text-xl font-black text-slate-950">Published videos</h2>
+              <div className="mt-5 space-y-3">
+                {dashboard.publicVideos.map((video: any) => (
+                  <a key={video.id} className="block rounded-md bg-slate-50 p-4 hover:bg-orange-50" href="/videos" target="_blank">
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-orange-600">{video.tag || "Video"}</p>
+                    <h3 className="mt-1 font-black text-slate-950">{video.title}</h3>
+                    <p className="mt-1 break-all text-xs text-slate-500">{video.youtube_url}</p>
+                  </a>
+                ))}
+                {dashboard.publicVideos.length === 0 && <p className="text-sm text-slate-500">No public videos published yet.</p>}
               </div>
             </section>
           </div>

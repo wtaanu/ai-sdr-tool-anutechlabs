@@ -33,6 +33,10 @@ async function runAction(action: string, payload: Record<string, any> = {}) {
     body: JSON.stringify({ action, payload })
   });
   const result = await response.json();
+  if (response.status === 401) {
+    window.location.href = "/admin/login";
+    throw new Error(result.error || "Admin session expired. Please login again.");
+  }
   if (!response.ok) throw new Error(result.error || "Action failed.");
   return result;
 }

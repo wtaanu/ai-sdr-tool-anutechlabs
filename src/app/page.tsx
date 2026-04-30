@@ -1,8 +1,9 @@
-import { ArrowRight, Bot, CalendarCheck, CheckCircle2, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, CalendarCheck, CheckCircle2, MailCheck, PlayCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { AgentCard } from "@/components/AgentCard";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { agents, categories } from "@/data/agents";
+import { learningBlogs, learningVideos } from "@/data/learning";
 
 const featuredAgents = agents.slice(0, 12);
 const customAgent = agents.find((agent) => agent.id === 50);
@@ -22,6 +23,8 @@ export default function Home() {
           </a>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
             <a href="#agents">Agents</a>
+            <a href="/videos">Videos</a>
+            <a href="/blogs">Blogs</a>
             <a href="#workflow">Workflow</a>
             <a href="#about">About</a>
             <a href="#privacy">Privacy</a>
@@ -132,6 +135,52 @@ export default function Home() {
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      <section id="learning" className="bg-white py-20">
+        <div className="section-shell">
+          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">videos and blogs</p>
+              <h2 className="mt-3 max-w-3xl text-4xl font-black text-slate-950">Learn how AI agents work before you choose one.</h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                Public resources for demos, walkthroughs, AI automation ideas, and practical client acquisition workflows.
+              </p>
+            </div>
+            <a className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-bold text-white" href="/videos">
+              Open video library <ArrowRight size={16} />
+            </a>
+            <a className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800" href="https://www.youtube.com/@anutechlabs?sub_confirmation=1" rel="noreferrer" target="_blank">
+              Subscribe on YouTube
+            </a>
+          </div>
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {learningVideos.map((video) => (
+              <article key={video.title} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft">
+                <a className="group block bg-graphite p-5 text-white" href="/videos">
+                  <div className="grid aspect-video place-items-center rounded-md border border-orange-500/25 bg-black/40 text-center">
+                    <span className="grid h-14 w-14 place-items-center rounded-full bg-orange-500 text-white transition group-hover:bg-orange-400"><PlayCircle size={26} /></span>
+                  </div>
+                  <span className="mt-4 inline-block rounded-full border border-orange-500/30 px-3 py-1 text-xs font-bold text-orange-200">{video.tag}</span>
+                  <h3 className="mt-3 text-xl font-black">{video.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{video.description}</p>
+                </a>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+            {learningBlogs.map((blog) => (
+              <a key={blog.title} className="rounded-lg border border-slate-200 bg-mist p-5 shadow-soft transition hover:border-orange-300" href={blog.href}>
+                <BookOpen className="text-orange-500" size={24} />
+                <span className="mt-4 inline-block rounded-full bg-white px-3 py-1 text-xs font-bold text-orange-700">{blog.tag}</span>
+                <h3 className="mt-3 text-xl font-black text-slate-950">{blog.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{blog.description}</p>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 

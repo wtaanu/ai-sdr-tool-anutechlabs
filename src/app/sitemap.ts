@@ -8,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/ai-agents",
     "/free-audit",
+    "/videos",
+    "/blogs",
     "/privacy",
     "/terms",
     "/cookie-policy",

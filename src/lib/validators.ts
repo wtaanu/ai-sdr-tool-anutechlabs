@@ -111,3 +111,10 @@ export const agentVideoSchema = z.object({
   videoUrl: z.string().optional().or(z.literal("")),
   title: z.string().optional().or(z.literal(""))
 });
+
+export const publicVideoSchema = z.object({
+  title: z.string().min(3).max(180),
+  about: z.string().min(10).max(1200),
+  youtubeUrl: z.string().url(),
+  tag: z.string().optional().or(z.literal(""))
+});

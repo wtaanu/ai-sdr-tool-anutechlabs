@@ -14,14 +14,25 @@ const allowedActions: Record<string, string> = {
   createSegment: "/api/segments"
 };
 
+function getCookieFromHeader(header: string | null, name: string) {
+  if (!header) return undefined;
+  return header
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
 export async function POST(request: Request) {
   const traceId = createTraceId("sales_bridge");
   const cookieStore = await cookies();
-  const session = verifyAdminSession(cookieStore.get(getAdminCookieName())?.value);
+  const cookieName = getAdminCookieName();
+  const token = cookieStore.get(cookieName)?.value || getCookieFromHeader(request.headers.get("cookie"), cookieName);
+  const session = verifyAdminSession(token);
 
   if (!session) {
-    await logTransaction({ traceId, level: "warn", eventName: "sales_bridge_unauthorized", route: "/api/admin/client-acquisition/action", status: "blocked" });
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    await logTransaction({ traceId, level: "warn", eventName: "sales_bridge_unauthorized", route: "/api/admin/client-acquisition/action", status: "blocked", metadata: { hasCookieHeader: Boolean(request.headers.get("cookie")), hasCookieStoreToken: Boolean(cookieStore.get(cookieName)?.value) } });
+    return NextResponse.json({ error: "Admin session expired. Please login again and retry the sync.", traceId }, { status: 401 });
   }
 
   const body = await request.json();
