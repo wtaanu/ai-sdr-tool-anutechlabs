@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { bookingSchema } from "@/lib/validators";
 import { sendBrandedEmail, withComplianceFooter } from "@/lib/email";
-import { createCalendarEvent } from "@/lib/calendar";
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +16,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (enquiryError || !enquiry) {
-      return NextResponse.json({ error: "Enquiry not found for this verified profile." }, { status: 404 });
+      return NextResponse.json({ error: "Enquiry not found for this profile." }, { status: 404 });
     }
 
     const preferredDate = new Date(body.preferredTime);
@@ -26,21 +25,6 @@ export async function POST(request: Request) {
     }
 
     const publicUsers = Array.isArray(enquiry.public_users) ? enquiry.public_users[0] : enquiry.public_users;
-    const calendarResult = publicUsers?.email
-      ? await createCalendarEvent({
-          clientName: publicUsers.full_name || "AI SDR lead",
-          clientEmail: publicUsers.email,
-          industry: enquiry.industry,
-          preferredTime: preferredDate.toISOString(),
-          timezone: body.timezone,
-          notes: body.notes || ""
-        })
-      : {
-          created: false,
-          meetingLink: "",
-          eventId: null,
-          detail: "Client email not found."
-        };
 
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
@@ -48,10 +32,10 @@ export async function POST(request: Request) {
         user_id: body.userId,
         enquiry_id: body.enquiryId,
         preferred_time: preferredDate.toISOString(),
-        timezone: body.timezone,
-        meeting_link: calendarResult.meetingLink || null,
-        calendar_event_id: calendarResult.eventId,
-        status: calendarResult.created ? "scheduled" : "requested"
+        timezone: body.country,
+        meeting_link: null,
+        calendar_event_id: null,
+        status: "requested"
       })
       .select("id,preferred_time,timezone,status,meeting_link,calendar_event_id")
       .single();
@@ -68,10 +52,7 @@ export async function POST(request: Request) {
       details: {
         bookingId: booking.id,
         preferredTime: booking.preferred_time,
-        timezone: booking.timezone,
-        meetingLink: booking.meeting_link,
-        calendarEventId: booking.calendar_event_id,
-        calendarDetail: calendarResult.detail,
+        country: body.country,
         notes: body.notes || ""
       }
     });
@@ -91,12 +72,16 @@ export async function POST(request: Request) {
           subject: "Your AI SDR consultation request is received",
           content: withComplianceFooter(`Hi {{first_name}},
 
-Your preferred call time has been saved:
-${booking.preferred_time}
-Timezone: ${booking.timezone}
-${booking.meeting_link ? `Meeting link: ${booking.meeting_link}` : ""}
+Thank you for requesting a consultation with AI SDR by AnutechLabs.
 
-${booking.status === "scheduled" ? "A calendar invite has been created." : "We will confirm the calendar invite and meeting link after reviewing your requirement."}`)
+Your call request has been initiated successfully.
+
+Requested time: ${booking.preferred_time}
+Country: ${body.country}
+Requirement: ${enquiry.industry || "AI SDR automation"}
+Notes: ${body.notes || "Not added"}
+
+Our team will review your requirement and reply on this email with the confirmed meeting link.`)
         })
       : { status: "draft", sent: false, detail: "Client email not found." };
 
@@ -110,21 +95,24 @@ ${booking.status === "scheduled" ? "A calendar invite has been created." : "We w
       sent_at: clientEmailResult.sent ? new Date().toISOString() : null
     });
 
-    const ownerEmail = process.env.OWNER_NOTIFICATION_EMAIL;
+    const ownerEmail = process.env.OWNER_NOTIFICATION_EMAIL || "wtaanu@gmail.com";
     const ownerEmailResult = ownerEmail
       ? await sendBrandedEmail({
           to: [{ email: ownerEmail, firstName: "Owner", company: "AnutechLabs", persona: "owner_alert", target: "call booking" }],
           subject: `Call requested: ${enquiry.industry || "AI SDR enquiry"}`,
-          content: `A lead requested a consultation call.
+          content: withComplianceFooter(`Hi Anuragini,
+
+A lead requested a consultation call from AI SDR by AnutechLabs.
 
 Name: ${publicUsers?.full_name || "Unknown"}
 Email: ${publicUsers?.email || "Unknown"}
+Company: ${publicUsers?.company || "Unknown"}
+Country: ${body.country}
 Industry: ${enquiry.industry || "Unknown"}
 Preferred time: ${booking.preferred_time}
-Timezone: ${booking.timezone}
-Meeting link: ${booking.meeting_link || "Not created yet"}
-Calendar status: ${calendarResult.detail}
-Notes: ${body.notes || ""}`
+Notes: ${body.notes || "Not added"}
+
+Please reply or send the meeting link manually after reviewing the requirement.`)
         })
       : { status: "draft", sent: false, detail: "OWNER_NOTIFICATION_EMAIL is not configured." };
 

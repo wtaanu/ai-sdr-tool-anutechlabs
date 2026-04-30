@@ -107,7 +107,25 @@ export async function POST(request: Request) {
       }
     });
 
-    const emailResult = await sendBrandedEmail({
+    const auditEmailContent = withComplianceFooter(`Hi {{first_name}},
+
+Your free AI automation audit is ready.
+
+${report.emailSummary}
+
+Opportunity score: ${report.opportunityScore}/100
+ROI potential: ${report.roiPotential}
+Estimated monthly leakage:
+${report.estimatedMonthlyLeakage}
+
+Full audit report:
+${reportText}
+
+Next step:
+Open your free audit page and explore the recommended agents here:
+${process.env.NEXT_PUBLIC_SITE_URL || "https://anutechlabs.company"}/free-audit`);
+
+    let emailResult = await sendBrandedEmail({
       to: [
         {
           email: user.email,
@@ -119,16 +137,7 @@ export async function POST(request: Request) {
         }
       ],
       subject: "Your free AI automation audit report",
-      content: withComplianceFooter(`Hi {{first_name}},
-
-Your free AI automation audit is ready.
-
-${report.emailSummary}
-
-Opportunity score: ${report.opportunityScore}/100
-ROI potential: ${report.roiPotential}
-
-The PDF report is attached. It includes recommended AI agents, analytics, roadmap, quick wins, and next steps.`),
+      content: auditEmailContent,
       attachments: [
         {
           filename: "anutechlabs-free-ai-audit.pdf",
@@ -137,6 +146,23 @@ The PDF report is attached. It includes recommended AI agents, analytics, roadma
         }
       ]
     });
+
+    if (emailResult.status === "failed") {
+      emailResult = await sendBrandedEmail({
+        to: [
+          {
+            email: user.email,
+            firstName: user.full_name.split(" ")[0],
+            company: user.company || body.businessType,
+            country: user.country,
+            persona: "free_audit",
+            target: body.growthGoal
+          }
+        ],
+        subject: "Your free AI automation audit report",
+        content: auditEmailContent
+      });
+    }
 
     await supabase.from("free_audit_requests").update({ email_status: emailResult.status }).eq("id", audit.id);
     await supabase.from("email_logs").insert({

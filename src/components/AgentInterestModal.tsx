@@ -49,7 +49,7 @@ export function AgentInterestModal({
   });
   const [bookingForm, setBookingForm] = useState({
     preferredTime: "",
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata",
+    country: "",
     notes: ""
   });
 
@@ -107,7 +107,8 @@ export function AgentInterestModal({
         score: result.enquiry.ai_lead_score,
         priority: result.enquiry.ai_priority
       });
-      setMessage("Interest submitted. This lead is now ready for review inside your AI SDR admin dashboard.");
+      setBookingForm((current) => ({ ...current, country: form.targetMarket || "" }));
+      setMessage("Interest submitted to owner. Someone from our team will connect with you shortly on your mentioned email, or you can request a consultation call below.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to submit interest.");
     } finally {
@@ -139,7 +140,7 @@ export function AgentInterestModal({
         throw new Error(result.error || "Unable to request call.");
       }
 
-      setBookingMessage("Call request saved. You will receive confirmation once the calendar invite is finalized.");
+      setBookingMessage("Call request initiated. You will receive an email confirmation shortly.");
       setBookingComplete(true);
     } catch (error) {
       setBookingMessage(error instanceof Error ? error.message : "Unable to request call.");
@@ -246,7 +247,7 @@ export function AgentInterestModal({
                     <p className="font-mono text-xs uppercase tracking-[0.2em] text-orange-300">journey complete</p>
                     <h4 className="mt-2 text-xl font-black text-white">Your call request is saved.</h4>
                     <p className="mt-3 text-sm leading-6 text-orange-100">
-                      Your details, agent interest, lead score, and preferred call time are now in the AI SDR by AnutechLabs admin dashboard.
+                      Your interest and preferred call time have been shared with the AnutechLabs team. Please check your email for confirmation.
                     </p>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <a className="rounded-md border border-orange-400 bg-black/40 px-4 py-3 text-center text-sm font-bold text-orange-100 hover:bg-orange-500 hover:text-white" href="/ai-agents">
@@ -262,7 +263,7 @@ export function AgentInterestModal({
                     <p className="font-mono text-xs uppercase tracking-[0.2em] text-orange-300">next step</p>
                     <h4 className="mt-2 text-lg font-black text-white">Request a consultation call</h4>
                     <p className="mt-2 text-xs leading-5 text-orange-100">
-                      Lead priority: {submittedEnquiry.priority} · Initial score: {submittedEnquiry.score}
+                      Our team will review your requirement and confirm the next available call slot by email.
                     </p>
                     <div className="mt-4 space-y-3">
                       <input
@@ -273,9 +274,10 @@ export function AgentInterestModal({
                       />
                       <input
                         className="w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400"
-                        onChange={(event) => updateBookingField("timezone", event.target.value)}
-                        placeholder="Timezone"
-                        value={bookingForm.timezone}
+                        onChange={(event) => updateBookingField("country", event.target.value)}
+                        placeholder="Country"
+                        required
+                        value={bookingForm.country}
                       />
                       <textarea
                         className="min-h-20 w-full rounded-md border border-orange-500/20 bg-[#11141b] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-400"
@@ -285,14 +287,14 @@ export function AgentInterestModal({
                       />
                       <button
                         className="w-full rounded-md border border-orange-400 bg-black/40 px-5 py-3 text-sm font-black text-orange-100 transition hover:bg-orange-500 hover:text-white"
-                        disabled={isBooking || !bookingForm.preferredTime}
+                        disabled={isBooking || !bookingForm.preferredTime || !bookingForm.country.trim()}
                         onClick={requestBooking}
                         type="button"
                       >
-                        {isBooking ? "Saving call request..." : "Request call booking"}
+                        {isBooking ? "Sending call request..." : "Request consultation call"}
                       </button>
                       {bookingMessage && (
-                        <p className={`rounded-md px-4 py-3 text-xs leading-5 ${bookingMessage.startsWith("Call request saved") ? "bg-orange-500/10 text-orange-100" : "bg-red-500/10 text-red-200"}`}>
+                        <p className={`rounded-md px-4 py-3 text-xs leading-5 ${bookingMessage.startsWith("Call request initiated") ? "bg-orange-500/10 text-orange-100" : "bg-red-500/10 text-red-200"}`}>
                           {bookingMessage}
                         </p>
                       )}

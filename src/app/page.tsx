@@ -2,7 +2,6 @@ import { ArrowRight, Bot, CalendarCheck, CheckCircle2, MailCheck, ShieldCheck, S
 import { AgentCard } from "@/components/AgentCard";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
-import { FreeAuditPanel } from "@/components/FreeAuditPanel";
 import { agents, categories } from "@/data/agents";
 
 const featuredAgents = agents.slice(0, 12);
@@ -23,7 +22,7 @@ export default function Home() {
           </a>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
             <a href="#agents">Agents</a>
-            <a href="#free-audit">Free Audit</a>
+            <a href="/free-audit">Free Audit</a>
             <a href="#workflow">Workflow</a>
             <a href="#about">About</a>
             <a href="#privacy">Privacy</a>
@@ -45,11 +44,8 @@ export default function Home() {
               social automation, email, finance, compliance, operations, and custom workflows.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-bold text-white" href="#free-audit">
+              <a className="inline-flex items-center gap-2 rounded-md bg-orange-500 px-5 py-3 text-sm font-bold text-white" href="/free-audit">
                 Get free audit <ArrowRight size={16} />
-              </a>
-              <a className="rounded-md bg-orange-500 px-5 py-3 text-sm font-bold text-white" href="#free-audit">
-                Get free audit today
               </a>
               <a className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800" href="#agents">
                 View agent categories
@@ -70,8 +66,8 @@ export default function Home() {
             <p className="mt-4 text-sm leading-7 text-slate-600">
               No signup gate. Share your email inside the free audit or show-interest form, and AI SDR will create your profile from that action.
             </p>
-            <a className="mt-5 inline-flex rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white" href="#free-audit">
-              Start free audit
+            <a className="mt-5 inline-flex rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white" href="#agents">
+              Explore agents
             </a>
           </div>
         </div>
@@ -93,8 +89,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      <FreeAuditPanel />
 
       <section id="agents" className="code-grid bg-graphite py-20 text-white">
         <div className="section-shell">

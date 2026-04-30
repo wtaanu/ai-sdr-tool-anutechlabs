@@ -50,7 +50,7 @@ export const bookingSchema = z.object({
   userId: z.string().uuid(),
   enquiryId: z.string().uuid(),
   preferredTime: z.string().min(10),
-  timezone: z.string().min(2),
+  country: z.string().min(2),
   notes: z.string().optional().or(z.literal(""))
 });
 
