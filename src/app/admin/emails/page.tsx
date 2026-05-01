@@ -1,8 +1,10 @@
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
 export default async function EmailsPage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const { data } = await supabase
     .from("email_logs")

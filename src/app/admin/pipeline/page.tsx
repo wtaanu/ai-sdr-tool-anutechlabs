@@ -1,6 +1,7 @@
 import { agents } from "@/data/agents";
 import { LeadStatusControl } from "@/components/AdminActions";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ function getAgentNames(ids: number[]) {
 }
 
 export default async function PipelinePage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const { data } = await supabase
     .from("enquiries")

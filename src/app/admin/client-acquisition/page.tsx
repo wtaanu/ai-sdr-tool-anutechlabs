@@ -1,5 +1,6 @@
 import { SalesFunnelCommandCenter } from "@/components/SalesFunnelCommandCenter";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -152,6 +153,7 @@ function formatDate(value: string | null) {
 }
 
 export default async function ClientAcquisitionPage() {
+  await requireAdminSession();
   const apiUrl = process.env.CLIENT_ACQUISITION_API_URL || "";
   const [bridgeHealth, sharedFunnel, bridgeSalesDashboard] = await Promise.all([getBridgeHealth(apiUrl), getSharedFunnelData(), getBridgeSalesDashboard(apiUrl)]);
   const futureSourceCount = Math.max(sharedFunnel.stats.totalDrafts - sharedFunnel.stats.aiSdrDrafts - sharedFunnel.stats.apolloDrafts, 0);

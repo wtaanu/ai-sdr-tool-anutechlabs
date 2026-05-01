@@ -1,9 +1,11 @@
 import { DataRequestStatusControl } from "@/components/AdminActions";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
 export default async function CompliancePage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const [{ data: requests }, { data: suppressions }, { data: audits }, { data: consents }] = await Promise.all([
     supabase.from("data_requests").select("*").order("created_at", { ascending: false }),

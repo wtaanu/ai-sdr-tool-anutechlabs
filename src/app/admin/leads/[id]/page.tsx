@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { agents } from "@/data/agents";
 import { BookingStatusControl, LeadStatusControl } from "@/components/AdminActions";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ function agentNames(ids: number[]) {
 }
 
 export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
+  await requireAdminSession();
   const { id } = await params;
   const supabase = getSupabaseAdminClient();
   const [{ data: enquiry }, { data: timeline }, { data: bookings }, { data: emails }] = await Promise.all([

@@ -1,3 +1,5 @@
+import { requireAdminSession } from "@/lib/requireAdmin";
+
 export const dynamic = "force-dynamic";
 
 const settings = [
@@ -13,7 +15,9 @@ const settings = [
   ["Client acquisition API", "CLIENT_ACQUISITION_API_URL"]
 ];
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await requireAdminSession();
+
   return (
     <main className="min-h-screen bg-mist p-6 lg:p-8">
       <section className="section-shell max-w-4xl">

@@ -1,10 +1,12 @@
 import { agents, categories } from "@/data/agents";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { AgentVideoForm } from "@/components/AgentVideoForm";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAgentsPage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const [{ data }, { data: videos }] = await Promise.all([
     supabase.from("enquiries").select("selected_agent_ids,status"),

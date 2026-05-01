@@ -1,4 +1,5 @@
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,7 @@ function statusClass(status: string) {
 }
 
 export default async function InterestEventsPage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
     .from("agent_interest_events")

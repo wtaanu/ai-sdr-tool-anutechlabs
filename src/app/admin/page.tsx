@@ -3,6 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { agents } from "@/data/agents";
 import { BookingStatusControl, LeadStatusControl, LogoutButton } from "@/components/AdminActions";
 import { PublicVideoAdminForm } from "@/components/PublicVideoAdminForm";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 const pipeline = ["New Lead", "Qualified", "Call Booked", "Call Done", "Proposal Sent", "Negotiation", "Won"];
 
@@ -142,6 +143,7 @@ function getAgentNames(ids: number[]) {
 }
 
 export default async function AdminDashboardPage() {
+  await requireAdminSession();
   const dashboard = await getDashboardData();
   const stats = [
     { label: "Verified users", value: String(dashboard.counts.verifiedUsers), note: "Profiles after OTP", icon: UsersRound },

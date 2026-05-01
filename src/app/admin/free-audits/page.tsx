@@ -1,5 +1,6 @@
 import { FreeAuditFollowupActions } from "@/components/FreeAuditFollowupActions";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,7 @@ function isOlderThanTwoDays(value: string) {
 }
 
 export default async function AdminFreeAuditsPage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
     .from("free_audit_requests")

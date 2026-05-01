@@ -1,9 +1,11 @@
 import { agents } from "@/data/agents";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { requireAdminSession } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AnalyticsPage() {
+  await requireAdminSession();
   const supabase = getSupabaseAdminClient();
   const [{ data: enquiries }, { data: users }, { data: bookings }] = await Promise.all([
     supabase.from("enquiries").select("selected_agent_ids,status,industry,target_market,ai_lead_score"),

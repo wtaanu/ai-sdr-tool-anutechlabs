@@ -20,6 +20,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid admin credentials." }, { status: 401 });
     }
 
+    if (!process.env.ADMIN_PASSWORD && process.env.ADMIN_AUTH_MODE !== "supabase") {
+      await logTransaction({ traceId, level: "error", eventName: "admin_login_password_env_missing", route: "/api/admin/login", email, status: "failed" });
+      return NextResponse.json({ error: "Admin password is not configured in deployment. Add ADMIN_PASSWORD in Vercel and redeploy." }, { status: 500 });
+    }
+
     if (process.env.ADMIN_PASSWORD) {
       if (body.password !== process.env.ADMIN_PASSWORD) {
         await logTransaction({ traceId, level: "warn", eventName: "admin_login_password_failed", route: "/api/admin/login", email, status: "failed" });

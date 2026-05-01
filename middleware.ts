@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getAdminCookieName, verifyAdminSession } from "@/lib/auth";
+
+const ADMIN_COOKIE_NAME = "anutech_admin_session";
 
 export function middleware(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
@@ -9,8 +10,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = verifyAdminSession(request.cookies.get(getAdminCookieName())?.value);
-  if (!session) {
+  if (!request.cookies.get(ADMIN_COOKIE_NAME)?.value) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
