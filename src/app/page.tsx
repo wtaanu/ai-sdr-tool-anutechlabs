@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Bot, CalendarCheck, CheckCircle2, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, CalendarCheck, CheckCircle2, MailCheck, Sparkles } from "lucide-react";
 import { AgentCard } from "@/components/AgentCard";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
@@ -6,7 +6,7 @@ import { agents, categories } from "@/data/agents";
 import { learningBlogs } from "@/data/learning";
 import { getPublishedLearningVideos } from "@/lib/learningVideos";
 
-const featuredAgents = agents.slice(0, 12);
+const featuredAgents = agents.slice(0, 3);
 const customAgent = agents.find((agent) => agent.id === 50);
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,6 @@ export default async function Home() {
             <a href="/blogs">Blogs</a>
             <a href="#workflow">Workflow</a>
             <a href="#about">About</a>
-            <a href="#privacy">Privacy</a>
           </nav>
           <a className="rounded-md bg-orange-500 px-4 py-2 text-sm font-bold text-white" href="#start">
             Start
@@ -138,7 +137,7 @@ export default async function Home() {
           </div>
           <div className="mt-8 text-center">
             <a className="inline-flex items-center gap-2 rounded-md border border-orange-500/40 bg-black/40 px-5 py-3 text-sm font-bold text-orange-200" href="/ai-agents">
-              Open all 50 agents <ArrowRight size={16} />
+              Read more about all 50 agents <ArrowRight size={16} />
             </a>
           </div>
           {customAgent && (
@@ -240,7 +239,7 @@ export default async function Home() {
             <h2 className="mt-3 text-4xl font-black text-slate-950">Built by Anuragini Pathak, focused on practical AI automation.</h2>
             <div className="mt-5 flex flex-wrap gap-3">
               <a className="rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white" href="https://www.instagram.com/anutechaitools/" target="_blank" rel="noreferrer">Instagram</a>
-              <a className="rounded-md bg-orange-500 px-4 py-3 text-sm font-bold text-white" href="https://www.linkedin.com/in/anuragini-pathak-49a03564/" target="_blank" rel="noreferrer">LinkedIn</a>
+              <a className="rounded-md bg-orange-500 px-4 py-3 text-sm font-bold text-white" href="https://www.linkedin.com/company/ai-sdr-by-anutechlabs/" target="_blank" rel="noreferrer">LinkedIn</a>
             </div>
           </div>
           <div className="space-y-5 text-base leading-8 text-slate-700">
@@ -255,23 +254,6 @@ export default async function Home() {
               lose opportunities. Every agent should either save time, improve visibility, increase follow-up quality,
               or help a team convert more enquiries into real conversations.
             </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="privacy" className="py-20">
-        <div className="section-shell grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1">
-            <ShieldCheck className="text-orange-500" size={34} />
-            <h2 className="mt-4 text-3xl font-black text-slate-950">Privacy-first by design.</h2>
-          </div>
-          <div className="grid gap-4 lg:col-span-2 sm:grid-cols-2">
-            {["GDPR-style consent records", "Email unsubscribe for marketing", "India DPDP consent purpose", "Data access and deletion requests"].map((item) => (
-              <div key={item} className="rounded-lg border border-slate-200 p-5">
-                <h3 className="font-bold text-slate-950">{item}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Prepared for region-aware handling of profiles, audits, enquiries, and marketing email preferences.</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
