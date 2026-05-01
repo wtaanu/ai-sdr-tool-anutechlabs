@@ -115,6 +115,43 @@ function AuditPreview() {
   );
 }
 
+const offerSections = [
+  {
+    title: "Free Audit",
+    items: [
+      "See where your team wastes time",
+      "Quantify the cost, usually $100K-300K/year",
+      "Get a roadmap to fix it",
+      "Takes 5 minutes"
+    ]
+  },
+  {
+    title: "Implementation Services",
+    items: [
+      "We automate your entire sales process",
+      "Lead capture to CRM to follow-ups to reporting",
+      "Using n8n, Airtable, Zapier, Zoho, and WhatsApp",
+      "Timeline: 30-60 days"
+    ]
+  },
+  {
+    title: "Results",
+    items: [
+      "20-30 hours/week freed up per person",
+      "Sales cycle shortened 30-50%",
+      "Close rate improvement 15-40%",
+      "Cost: $5,000-15,000 with ROI in 6-12 months"
+    ]
+  }
+];
+
+const idealClients = [
+  "SaaS founders with 2-10 person sales teams",
+  "Agencies with high-volume lead flow",
+  "E-commerce teams needing order automation",
+  "B2B sales teams with complex workflows"
+];
+
 export function FreeAuditPanel({ featuredVideo }: { featuredVideo?: LearningVideo }) {
   const [lead, setLead] = useState(initialLead);
   const [answers, setAnswers] = useState(initialAnswers);
@@ -414,9 +451,37 @@ export function FreeAuditPanel({ featuredVideo }: { featuredVideo?: LearningVide
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">Free sales automation audit</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-slate-950 sm:text-6xl">
-            See Where Your Sales Team Wastes Time
+            Sales Automation for SaaS Teams
           </h1>
-          <p className="mt-5 text-lg font-bold text-slate-700">5-minute audit. No credit card. Instant results.</p>
+          <p className="mt-5 max-w-2xl text-lg font-bold leading-8 text-slate-700">
+            Reclaim 30+ hours/week. Reduce sales cycle by 40%. Scale revenue without scaling headcount.
+          </p>
+          <div className="mt-8 grid gap-4 lg:grid-cols-3">
+            {offerSections.map((section) => (
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-soft" key={section.title}>
+                <h2 className="font-black text-slate-950">{section.title}</h2>
+                <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                  {section.items.map((item) => (
+                    <li className="flex gap-2" key={item}>
+                      <CheckCircle2 className="mt-0.5 shrink-0 text-orange-500" size={16} />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50 p-4">
+            <h2 className="font-black text-orange-900">Who we help</h2>
+            <div className="mt-3 grid gap-2 text-sm font-semibold text-orange-950 sm:grid-cols-2">
+              {idealClients.map((item) => (
+                <div className="flex gap-2" key={item}>
+                  <CheckCircle2 className="mt-0.5 shrink-0 text-orange-600" size={16} />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="mt-8 max-w-lg rounded-lg border border-slate-200 bg-mist p-5 shadow-soft">
             <form
               className="space-y-4"

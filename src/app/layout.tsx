@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ContactUsFooter } from "@/components/ContactUsFooter";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
@@ -29,6 +30,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=AW-18131528034" strategy="afterInteractive" />
+        <Script id="google-ads-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18131528034');
+          `}
+        </Script>
+      </head>
       <body>
         {children}
         <ContactUsFooter />
