@@ -89,6 +89,7 @@ export const dataRequestStatusSchema = z.object({
 });
 
 export const freeAuditSchema = z.object({
+  auditId: z.string().uuid().optional(),
   userId: z.string().uuid().optional(),
   email: z.string().email(),
   firstName: z.string().min(1),
@@ -109,6 +110,24 @@ export const freeAuditSchema = z.object({
   biggestProblem: z.string().optional().or(z.literal("")),
   growthGoal: z.string().optional().or(z.literal("")),
   consentToAudit: z.literal(true)
+});
+
+export const freeAuditStartSchema = z.object({
+  firstName: z.string().min(1),
+  email: z.string().email(),
+  companyName: z.string().min(1)
+});
+
+export const freeAuditCallClickSchema = z.object({
+  auditId: z.string().uuid().optional(),
+  email: z.string().email(),
+  firstName: z.string().optional().or(z.literal("")),
+  companyName: z.string().optional().or(z.literal(""))
+});
+
+export const freeAuditFollowupSchema = z.object({
+  auditId: z.string().uuid(),
+  followupType: z.enum(["value_reminder", "roadmap_help", "strategy_call", "case_study"])
 });
 
 export const agentVideoSchema = z.object({

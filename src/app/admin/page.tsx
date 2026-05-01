@@ -166,6 +166,7 @@ export default async function AdminDashboardPage() {
             {[
               ["Overview", "/admin"],
               ["Client Acquisition", "/admin/client-acquisition"],
+              ["Free Audits", "/admin/free-audits"],
               ["Public Videos", "/videos"],
               ["Public Blogs", "/blogs"],
               ["Pipeline", "/admin/pipeline"],

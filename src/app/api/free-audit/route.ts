@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { freeAuditSchema } from "@/lib/validators";
-import { createSimplePdfBase64 } from "@/lib/simplePdf";
+import { createBrandedPdfBase64 } from "@/lib/simplePdf";
 import { sendBrandedEmail, withComplianceFooter } from "@/lib/email";
 import { createSalesWasteAudit, formatMoney, formatSalesAuditText } from "@/lib/salesAudit";
 import { createTraceId, logTransaction } from "@/lib/transactionLog";
@@ -27,7 +27,44 @@ export async function POST(request: Request) {
       biggestWaste: body.biggestWaste
     });
     const reportText = formatSalesAuditText(report);
-    const pdfBase64 = createSimplePdfBase64(`Sales Automation Audit for ${companyName}`, reportText);
+    const pdfBase64 = createBrandedPdfBase64([
+      {
+        type: "hero",
+        title: `Your Sales Team Is Wasting ${formatMoney(report.totalAnnualCost)} Per Year`,
+        subtitle: `Personalized audit for ${companyName}. Here is exactly where manual sales work is costing time, money, and follow-up consistency.`,
+        metric: `${report.totalWeeklyHours} hrs/wk`,
+        label: "manual work detected"
+      },
+      { type: "stat", label: "Annual manual-work cost", value: formatMoney(report.totalAnnualCost), note: "Current estimated leakage" },
+      { type: "stat", label: "Potential savings", value: `${formatMoney(report.totalSavingsAnnual)}/yr`, note: "After automation rollout" },
+      { type: "stat", label: "Time reclaimed", value: `${report.totalFreedHours} hrs/wk`, note: `Timeline: ${report.timeline}` },
+      { type: "section", title: "Cost Breakdown By Activity" },
+      ...report.activities.map((activity) => ({
+        type: "bar" as const,
+        label: activity.label,
+        value: `${formatMoney(activity.annualCost)}/yr`,
+        percent: Math.round((activity.monthlyCost / report.totalMonthlyCost) * 100),
+        note: `${activity.hoursPerWeek} hours/week. Current approach: ${activity.currentApproach}. Quick win: ${activity.quickWin}.`
+      })),
+      { type: "section", title: "Optimization Roadmap" },
+      ...report.roadmap.slice(0, 4).map((activity, index) => ({
+        type: "bar" as const,
+        label: `Priority ${index + 1}: ${activity.label}`,
+        value: `${formatMoney(activity.savingsAnnual)}/yr`,
+        percent: Math.min(100, Math.round((activity.savingsAnnual / report.totalSavingsAnnual) * 100)),
+        note: `Save ${activity.freedHours} hours/week. Implementation: ${activity.implementation}. Monthly savings: ${formatMoney(activity.savingsMonthly)}.`
+      })),
+      { type: "section", title: "Implementation Plan" },
+      ...report.phases.map((phase) => ({
+        type: "text" as const,
+        text: `${phase.week} - ${phase.title}: ${phase.action}. Tools: ${phase.tools}. Setup: ${phase.setupTime}. Ongoing: ${phase.ongoing}. Result: ${phase.result}.`
+      })),
+      { type: "section", title: "Next Step" },
+      {
+        type: "text",
+        text: `Book a 30-minute strategy call to validate these numbers with your actual data, choose the fastest ROI phase, and map the first 90 days.`
+      }
+    ]);
 
     const { data: user, error: userError } = await supabase
       .from("public_users")
@@ -60,9 +97,7 @@ export async function POST(request: Request) {
       source_url: "free_audit_form"
     });
 
-    const { data: audit, error: auditError } = await supabase
-      .from("free_audit_requests")
-      .insert({
+    const auditPayload = {
         user_id: user.id,
         industry: "Sales automation",
         business_type: "Sales team",
@@ -78,10 +113,25 @@ export async function POST(request: Request) {
         opportunity_score: Math.min(100, Math.max(65, Math.round(report.totalFreedHours * 2.4))),
         roi_potential: `${formatMoney(report.totalSavingsAnnual)}/year potential savings`,
         recommended_agent_ids: [],
-        report_json: report,
+        report_json: {
+          ...report,
+          status: "summary_generated",
+          summaryGeneratedAt: new Date().toISOString()
+        },
         report_text: reportText,
         consent_status: "accepted"
-      })
+      };
+
+    const auditMutation = body.auditId
+      ? supabase
+          .from("free_audit_requests")
+          .update(auditPayload)
+          .eq("id", body.auditId)
+      : supabase
+          .from("free_audit_requests")
+          .insert(auditPayload);
+
+    const { data: audit, error: auditError } = await auditMutation
       .select("id")
       .single();
 

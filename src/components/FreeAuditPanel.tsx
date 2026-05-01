@@ -120,8 +120,10 @@ export function FreeAuditPanel() {
   const [step, setStep] = useState<"lead" | "questions" | "results">("lead");
   const [screen, setScreen] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingLead, setIsSavingLead] = useState(false);
   const [message, setMessage] = useState("");
   const [report, setReport] = useState<SalesWasteAudit | null>(null);
+  const [tracking, setTracking] = useState<{ auditId?: string; userId?: string }>({});
   const meetingUrl = process.env.NEXT_PUBLIC_DEFAULT_MEETING_URL || process.env.NEXT_PUBLIC_MEETING_URL || "/#contact-us";
 
   const localReport = useMemo(() => {
@@ -140,6 +142,27 @@ export function FreeAuditPanel() {
     setLead((current) => ({ ...current, [field]: value }));
   }
 
+  async function startAuditLead() {
+    setIsSavingLead(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/free-audit/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lead)
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        setTracking({ auditId: result.auditId, userId: result.userId });
+      }
+    } finally {
+      setIsSavingLead(false);
+      setStep("questions");
+    }
+  }
+
   async function createAudit() {
     if (!localReport) return;
     setIsSubmitting(true);
@@ -154,6 +177,8 @@ export function FreeAuditPanel() {
         body: JSON.stringify({
           ...lead,
           ...answers,
+          auditId: tracking.auditId,
+          userId: tracking.userId,
           consentToAudit: true
         })
       });
@@ -172,6 +197,19 @@ export function FreeAuditPanel() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function trackCallClick() {
+    void fetch("/api/free-audit/call-click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        auditId: tracking.auditId,
+        email: lead.email,
+        firstName: lead.firstName,
+        companyName: lead.companyName
+      })
+    });
   }
 
   if (step === "questions") {
@@ -216,7 +254,7 @@ export function FreeAuditPanel() {
               </h1>
               <p className="mt-3 text-base leading-7 text-slate-600">Here is exactly where and how much it is costing you.</p>
             </div>
-            <a className="inline-flex items-center justify-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white" href={meetingUrl}>
+            <a className="inline-flex items-center justify-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white" href={meetingUrl} onClick={trackCallClick}>
               <CalendarClock size={16} />
               Book Strategy Call
             </a>
@@ -355,7 +393,7 @@ export function FreeAuditPanel() {
                   </div>
                 ))}
               </div>
-              <a className="mt-7 inline-flex items-center justify-center gap-2 rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white" href={meetingUrl}>
+              <a className="mt-7 inline-flex items-center justify-center gap-2 rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white" href={meetingUrl} onClick={trackCallClick}>
                 Book Your 30-Minute Strategy Call
                 <ArrowRight size={16} />
               </a>
@@ -383,14 +421,14 @@ export function FreeAuditPanel() {
               className="space-y-4"
               onSubmit={(event) => {
                 event.preventDefault();
-                setStep("questions");
+                void startAuditLead();
               }}
             >
               <input className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateLead("firstName", event.target.value)} placeholder="First Name" required value={lead.firstName} />
               <input className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateLead("email", event.target.value)} placeholder="Email" required type="email" value={lead.email} />
               <input className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none focus:border-orange-500" onChange={(event) => updateLead("companyName", event.target.value)} placeholder="Company Name" required value={lead.companyName} />
-              <button className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white transition hover:bg-orange-400" type="submit">
-                Get My Free Audit
+              <button className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white transition hover:bg-orange-400 disabled:bg-slate-300" disabled={isSavingLead} type="submit">
+                {isSavingLead ? "Saving..." : "Get My Free Audit"}
                 <ArrowRight size={16} />
               </button>
             </form>
