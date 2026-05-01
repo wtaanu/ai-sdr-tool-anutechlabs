@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { agents } from "@/data/agents";
+import { learningBlogs } from "@/data/learning";
 import { countries, industries, longTailSeoPages } from "@/data/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -46,6 +47,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.78
+    })),
+    ...learningBlogs.map((blog) => ({
+      url: `${baseUrl}/blogs/${blog.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.76
     }))
   ];
 }

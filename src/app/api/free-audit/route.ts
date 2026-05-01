@@ -1,30 +1,44 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { freeAuditSchema } from "@/lib/validators";
-import { createFreeAuditReport, formatAuditReportText, type FreeAuditReport } from "@/lib/freeAudit";
 import { createSimplePdfBase64 } from "@/lib/simplePdf";
 import { sendBrandedEmail, withComplianceFooter } from "@/lib/email";
+import { createSalesWasteAudit, formatMoney, formatSalesAuditText } from "@/lib/salesAudit";
 import { createTraceId, logTransaction } from "@/lib/transactionLog";
 
 export async function POST(request: Request) {
   const traceId = createTraceId("free_audit");
+
   try {
     const body = freeAuditSchema.parse(await request.json());
     const supabase = getSupabaseAdminClient();
     const email = body.email.toLowerCase().trim();
+    const firstName = body.firstName.trim();
+    const companyName = body.companyName.trim();
+
     await logTransaction({ traceId, eventName: "free_audit_started", route: "/api/free-audit", email, status: "started" });
 
-    const fullName = body.fullName?.trim() || email.split("@")[0] || "Free Audit Lead";
+    const report = createSalesWasteAudit({
+      firstName,
+      email,
+      companyName,
+      salespeople: body.salespeople,
+      salesCycle: body.salesCycle,
+      biggestWaste: body.biggestWaste
+    });
+    const reportText = formatSalesAuditText(report);
+    const pdfBase64 = createSimplePdfBase64(`Sales Automation Audit for ${companyName}`, reportText);
+
     const { data: user, error: userError } = await supabase
       .from("public_users")
       .upsert(
         {
-          full_name: fullName,
+          full_name: firstName,
           email,
           mobile: "not provided",
-          country: body.targetMarket || "Unknown",
-          company: body.businessType,
-          website: body.companyWebsite || null,
+          country: "Unknown",
+          company: companyName,
+          website: null,
           source: "free_audit"
         },
         { onConflict: "email" }
@@ -42,48 +56,28 @@ export async function POST(request: Request) {
       consent_type: "free_ai_audit",
       status: "accepted",
       country: user.country,
-      policy_version: "draft",
+      policy_version: "sales-audit-2026-05",
       source_url: "free_audit_form"
     });
-
-    const report: FreeAuditReport = await createFreeAuditReport({
-      fullName: user.full_name,
-      email: user.email,
-      company: user.company,
-      country: user.country,
-      industry: body.industry,
-      businessType: body.businessType,
-      companyWebsite: body.companyWebsite,
-      targetMarket: body.targetMarket,
-      monthlyLeads: body.monthlyLeads,
-      averageOrderValue: body.averageOrderValue,
-      currentTools: body.currentTools,
-      responseTime: body.responseTime,
-      teamSize: body.teamSize,
-      biggestProblem: body.biggestProblem,
-      growthGoal: body.growthGoal
-    });
-    const reportText = formatAuditReportText(report);
-    const pdfBase64 = createSimplePdfBase64(report.headline, reportText);
 
     const { data: audit, error: auditError } = await supabase
       .from("free_audit_requests")
       .insert({
         user_id: user.id,
-        industry: body.industry,
-        business_type: body.businessType,
-        company_website: body.companyWebsite || null,
-        target_market: body.targetMarket || null,
-        monthly_leads: body.monthlyLeads || null,
-        average_order_value: body.averageOrderValue || null,
-        current_tools: body.currentTools || null,
-        response_time: body.responseTime || null,
-        team_size: body.teamSize || null,
-        biggest_problem: body.biggestProblem,
-        growth_goal: body.growthGoal,
-        opportunity_score: report.opportunityScore,
-        roi_potential: report.roiPotential,
-        recommended_agent_ids: report.matchedAgents.map((agent) => agent.id),
+        industry: "Sales automation",
+        business_type: "Sales team",
+        company_website: null,
+        target_market: null,
+        monthly_leads: body.salespeople,
+        average_order_value: body.salesCycle,
+        current_tools: body.biggestWaste,
+        response_time: body.salesCycle,
+        team_size: body.salespeople,
+        biggest_problem: `${body.biggestWaste} wastes the most time`,
+        growth_goal: "Reclaim sales team time and reduce manual work",
+        opportunity_score: Math.min(100, Math.max(65, Math.round(report.totalFreedHours * 2.4))),
+        roi_potential: `${formatMoney(report.totalSavingsAnnual)}/year potential savings`,
+        recommended_agent_ids: [],
         report_json: report,
         report_text: reportText,
         consent_status: "accepted"
@@ -101,46 +95,60 @@ export async function POST(request: Request) {
       activity_type: "free_audit_completed",
       details: {
         auditId: audit.id,
-        opportunityScore: report.opportunityScore,
-        roiPotential: report.roiPotential,
-        recommendedAgents: report.matchedAgents.map((agent) => agent.name)
+        salespeople: body.salespeople,
+        salesCycle: body.salesCycle,
+        biggestWaste: body.biggestWaste,
+        totalAnnualCost: report.totalAnnualCost,
+        totalSavingsAnnual: report.totalSavingsAnnual,
+        totalFreedHours: report.totalFreedHours
       }
     });
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anutechlabs.company";
+    const meetingUrl = process.env.DEFAULT_MEETING_URL || `${siteUrl}/#contact-us`;
+    const emailSubject = `Your Sales Automation Audit Results (${formatMoney(report.totalSavingsAnnual)} opportunity)`;
     const auditEmailContent = withComplianceFooter(`Hi {{first_name}},
 
-Your free AI automation audit is ready.
+Thanks for completing your audit.
 
-${report.emailSummary}
+Your results show a clear opportunity: ${formatMoney(report.totalSavingsAnnual)} in annual savings by automating ${report.topPriority.label.toLowerCase()} first.
 
-Opportunity score: ${report.opportunityScore}/100
-ROI potential: ${report.roiPotential}
-Estimated monthly leakage:
-${report.estimatedMonthlyLeakage}
+Most founders and sales leaders are shocked when they see the actual number. For ${companyName}, the current estimate is:
 
-Full audit report:
-${reportText}
+Annual manual-work cost: ${formatMoney(report.totalAnnualCost)}
+Weekly time wasted: ${report.totalWeeklyHours} hours
+Potential time reclaimed: ${report.totalFreedHours} hours/week
+Fastest priority: ${report.topPriority.label}
+Timeline to full implementation: ${report.timeline}
 
-Next step:
-Open your free audit page and explore the recommended agents here:
-${process.env.NEXT_PUBLIC_SITE_URL || "https://anutechlabs.company"}/free-audit`);
+If you want to discuss implementation strategy, I am happy to help:
+${meetingUrl}
+
+No pitch. Just a conversation about your specific opportunity.
+
+Your full audit report is attached as a PDF.
+
+Thanks & Regards,
+AI SDR- Anutech Labs
+Website: ${siteUrl}/`);
 
     let emailResult = await sendBrandedEmail({
       to: [
         {
           email: user.email,
-          firstName: user.full_name.split(" ")[0],
-          company: user.company || body.businessType,
+          firstName,
+          company: companyName,
           country: user.country,
           persona: "free_audit",
-          target: body.growthGoal
+          target: report.topPriority.label
         }
       ],
-      subject: "Your free AI automation audit report",
+      subject: emailSubject,
       content: auditEmailContent,
+      cta: meetingUrl,
       attachments: [
         {
-          filename: "anutechlabs-free-ai-audit.pdf",
+          filename: "anutechlabs-sales-automation-audit.pdf",
           contentBase64: pdfBase64,
           contentType: "application/pdf"
         }
@@ -152,15 +160,16 @@ ${process.env.NEXT_PUBLIC_SITE_URL || "https://anutechlabs.company"}/free-audit`
         to: [
           {
             email: user.email,
-            firstName: user.full_name.split(" ")[0],
-            company: user.company || body.businessType,
+            firstName,
+            company: companyName,
             country: user.country,
             persona: "free_audit",
-            target: body.growthGoal
+            target: report.topPriority.label
           }
         ],
-        subject: "Your free AI automation audit report",
-        content: auditEmailContent
+        subject: emailSubject,
+        content: auditEmailContent,
+        cta: meetingUrl
       });
     }
 
@@ -168,13 +177,21 @@ ${process.env.NEXT_PUBLIC_SITE_URL || "https://anutechlabs.company"}/free-audit`
     await supabase.from("email_logs").insert({
       user_id: user.id,
       email_type: "free_audit_report",
-      subject: "Your free AI automation audit report",
+      subject: emailSubject,
       status: emailResult.status,
       provider_message_id: emailResult.detail,
       sent_at: emailResult.sent ? new Date().toISOString() : null
     });
 
-    await logTransaction({ traceId, eventName: "free_audit_completed", route: "/api/free-audit", userId: user.id, email: user.email, status: "completed", metadata: { auditId: audit.id, emailStatus: emailResult.status, score: report.opportunityScore } });
+    await logTransaction({
+      traceId,
+      eventName: "free_audit_completed",
+      route: "/api/free-audit",
+      userId: user.id,
+      email: user.email,
+      status: "completed",
+      metadata: { auditId: audit.id, emailStatus: emailResult.status, totalSavingsAnnual: report.totalSavingsAnnual }
+    });
 
     return NextResponse.json({ ok: true, traceId, auditId: audit.id, report });
   } catch (error) {

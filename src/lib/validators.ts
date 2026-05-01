@@ -91,9 +91,14 @@ export const dataRequestStatusSchema = z.object({
 export const freeAuditSchema = z.object({
   userId: z.string().uuid().optional(),
   email: z.string().email(),
+  firstName: z.string().min(1),
+  companyName: z.string().min(1),
+  salespeople: z.enum(["1-3", "4-10", "11-20", "20+"]),
+  salesCycle: z.enum(["7-14 days", "15-30 days", "30-60 days", "60+ days"]),
+  biggestWaste: z.enum(["Lead entry", "CRM updates", "Follow-ups", "Data verification", "I'm not sure"]),
   fullName: z.string().optional().or(z.literal("")),
-  industry: z.string().min(2),
-  businessType: z.string().min(2),
+  industry: z.string().optional().or(z.literal("")),
+  businessType: z.string().optional().or(z.literal("")),
   companyWebsite: z.string().optional().or(z.literal("")),
   targetMarket: z.string().optional().or(z.literal("")),
   monthlyLeads: z.string().optional().or(z.literal("")),
@@ -101,8 +106,8 @@ export const freeAuditSchema = z.object({
   currentTools: z.string().optional().or(z.literal("")),
   responseTime: z.string().optional().or(z.literal("")),
   teamSize: z.string().optional().or(z.literal("")),
-  biggestProblem: z.string().min(10),
-  growthGoal: z.string().min(10),
+  biggestProblem: z.string().optional().or(z.literal("")),
+  growthGoal: z.string().optional().or(z.literal("")),
   consentToAudit: z.literal(true)
 });
 
