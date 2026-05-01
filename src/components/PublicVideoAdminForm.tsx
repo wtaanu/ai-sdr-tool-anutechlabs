@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function PublicVideoAdminForm() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [about, setAbout] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -35,6 +37,7 @@ export function PublicVideoAdminForm() {
       setYoutubeUrl("");
       setTag("AI automation");
       setMessage("Video saved and published on the public videos page.");
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to save video.");
     } finally {

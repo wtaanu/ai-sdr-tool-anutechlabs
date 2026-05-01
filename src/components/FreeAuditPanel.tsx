@@ -10,6 +10,7 @@ import {
   type SalesWasteAudit,
   type WasteActivity
 } from "@/lib/salesAudit";
+import type { LearningVideo } from "@/lib/learningVideos";
 
 const salespeopleOptions: SalespeopleRange[] = ["1-3", "4-10", "11-20", "20+"];
 const cycleOptions: SalesCycleRange[] = ["7-14 days", "15-30 days", "30-60 days", "60+ days"];
@@ -114,7 +115,7 @@ function AuditPreview() {
   );
 }
 
-export function FreeAuditPanel() {
+export function FreeAuditPanel({ featuredVideo }: { featuredVideo?: LearningVideo }) {
   const [lead, setLead] = useState(initialLead);
   const [answers, setAnswers] = useState(initialAnswers);
   const [step, setStep] = useState<"lead" | "questions" | "results">("lead");
@@ -434,7 +435,29 @@ export function FreeAuditPanel() {
             </form>
           </div>
         </div>
-        <AuditPreview />
+        <div className="space-y-5">
+          {featuredVideo && (
+            <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft">
+              <div className="bg-graphite p-4">
+                <iframe
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="aspect-video w-full rounded-md border border-orange-500/25"
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  src={featuredVideo.embedUrl}
+                  title={featuredVideo.title}
+                />
+              </div>
+              <div className="p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-600">watch first</p>
+                <h2 className="mt-2 text-xl font-black text-slate-950">{featuredVideo.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{featuredVideo.description}</p>
+              </div>
+            </article>
+          )}
+          <AuditPreview />
+        </div>
       </div>
     </section>
   );

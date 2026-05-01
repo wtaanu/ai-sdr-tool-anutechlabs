@@ -1,14 +1,21 @@
-import { ArrowRight, BookOpen, Bot, CalendarCheck, CheckCircle2, MailCheck, PlayCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, CalendarCheck, CheckCircle2, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
 import { AgentCard } from "@/components/AgentCard";
 import { SubscribeGate } from "@/components/SubscribeGate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { agents, categories } from "@/data/agents";
-import { learningBlogs, learningVideos } from "@/data/learning";
+import { learningBlogs } from "@/data/learning";
+import { getPublishedLearningVideos } from "@/lib/learningVideos";
 
 const featuredAgents = agents.slice(0, 12);
 const customAgent = agents.find((agent) => agent.id === 50);
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function Home() {
+  const liveVideos = await getPublishedLearningVideos();
+  const [latestVideo] = liveVideos;
+
   return (
     <main className="bg-white">
       <SubscribeGate />
@@ -68,8 +75,22 @@ export default function Home() {
             <p className="mt-4 text-sm leading-7 text-slate-600">
               No signup gate. Share your email inside the free audit or show-interest form, and AI SDR will create your profile from that action.
             </p>
-            <a className="mt-5 inline-flex rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white" href="#agents">
-              Explore agents
+            {latestVideo && (
+              <div className="mt-5 overflow-hidden rounded-md border border-slate-200 bg-graphite p-3">
+                <iframe
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="aspect-video w-full rounded border border-orange-500/25"
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  src={latestVideo.embedUrl}
+                  title={latestVideo.title}
+                />
+                <p className="mt-3 text-sm font-bold text-white">{latestVideo.title}</p>
+              </div>
+            )}
+            <a className="mt-5 inline-flex rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white" href="/free-audit">
+              Start free audit
             </a>
           </div>
         </div>
@@ -157,12 +178,18 @@ export default function Home() {
           </div>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {learningVideos.map((video) => (
+            {liveVideos.slice(0, 3).map((video) => (
               <article key={video.title} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft">
                 <a className="group block bg-graphite p-5 text-white" href="/videos">
-                  <div className="grid aspect-video place-items-center rounded-md border border-orange-500/25 bg-black/40 text-center">
-                    <span className="grid h-14 w-14 place-items-center rounded-full bg-orange-500 text-white transition group-hover:bg-orange-400"><PlayCircle size={26} /></span>
-                  </div>
+                  <iframe
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="aspect-video w-full rounded-md border border-orange-500/25"
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    src={video.embedUrl}
+                    title={video.title}
+                  />
                   <span className="mt-4 inline-block rounded-full border border-orange-500/30 px-3 py-1 text-xs font-bold text-orange-200">{video.tag}</span>
                   <h3 className="mt-3 text-xl font-black">{video.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{video.description}</p>

@@ -1,6 +1,10 @@
 import { ArrowRight, BookOpen, PlayCircle } from "lucide-react";
 import { ChatAssistant } from "@/components/ChatAssistant";
-import { learningBlogs, learningVideos } from "@/data/learning";
+import { learningBlogs } from "@/data/learning";
+import { getPublishedLearningVideos } from "@/lib/learningVideos";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "AI Automation Blogs | AI SDR by AnutechLabs",
@@ -18,7 +22,9 @@ export const metadata = {
   }
 };
 
-export default function BlogsPage() {
+export default async function BlogsPage() {
+  const videos = await getPublishedLearningVideos();
+
   return (
     <main className="bg-white">
       <ChatAssistant />
@@ -73,7 +79,7 @@ export default function BlogsPage() {
             </a>
           </div>
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
-            {learningVideos.map((video) => (
+            {videos.slice(0, 3).map((video) => (
               <a key={video.slug} className="rounded-lg border border-orange-500/25 bg-black/35 p-5 hover:border-orange-400" href="/videos">
                 <PlayCircle className="text-orange-400" size={24} />
                 <p className="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-orange-300">{video.tag}</p>
