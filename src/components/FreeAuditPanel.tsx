@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, BarChart3, CalendarClock, CheckCircle2, Clock, DollarSign } from "lucide-react";
+import { ArrowRight, BarChart3, CalendarClock, CheckCircle2, Clock, DollarSign, Home } from "lucide-react";
 import {
   createSalesWasteAudit,
   formatMoney,
@@ -112,6 +112,18 @@ function AuditPreview() {
         Your result will show exact waste, cost by activity, savings roadmap, implementation phases, and the fastest automation win.
       </p>
     </div>
+  );
+}
+
+function BackToWebsiteLink({ className = "" }: { className?: string }) {
+  return (
+    <a
+      className={`inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-800 shadow-sm transition hover:border-orange-300 hover:text-orange-700 ${className}`}
+      href="/"
+    >
+      <Home size={16} />
+      Back to AI agent website
+    </a>
   );
 }
 
@@ -253,6 +265,9 @@ export function FreeAuditPanel({ featuredVideo }: { featuredVideo?: LearningVide
   if (step === "questions") {
     return (
       <section id="free-audit" className="min-h-screen bg-mist px-4 py-10 sm:py-16">
+        <div className="mx-auto max-w-3xl">
+          <BackToWebsiteLink className="mb-5" />
+        </div>
         <div className="mx-auto max-w-3xl rounded-lg border border-slate-200 bg-white p-5 shadow-soft sm:p-8">
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-orange-600">Great. Let us customize your audit.</p>
           <h1 className="mt-3 text-3xl font-black text-slate-950">Answer these 3 quick questions.</h1>
@@ -284,6 +299,7 @@ export function FreeAuditPanel({ featuredVideo }: { featuredVideo?: LearningVide
     return (
       <section id="free-audit-results" className="min-h-screen bg-white px-4 py-8 sm:py-12">
         <div className="mx-auto max-w-6xl">
+          <BackToWebsiteLink className="mb-5" />
           <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.16em] text-orange-600">Personalized sales automation audit</p>
@@ -449,6 +465,7 @@ export function FreeAuditPanel({ featuredVideo }: { featuredVideo?: LearningVide
     <section id="free-audit" className="min-h-screen bg-white px-4 py-10 sm:py-16">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_440px] lg:items-center">
         <div>
+          <BackToWebsiteLink className="mb-6" />
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">Free sales automation audit</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-slate-950 sm:text-6xl">
             Sales Automation for SaaS Teams
