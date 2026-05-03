@@ -25,6 +25,29 @@ const stageConfig = [
   { id: "replied", label: "Replies", statuses: ["replied"] }
 ];
 
+const actionLabels: Record<string, string> = {
+  migrateProspects: "Google Sheets sync",
+  purgeFailedProspects: "Failed email cleanup",
+  generateDrafts: "AI draft generation",
+  generateProspects: "Apollo lead pull",
+  reviewDraft: "Draft review",
+  sendDraft: "Email send",
+  createManualProspect: "Manual lead creation"
+};
+
+const initialManualLead = {
+  companyName: "",
+  buyerName: "",
+  buyerTitle: "",
+  email: "",
+  industry: "",
+  country: "",
+  website: "",
+  segment: "general_b2b",
+  leadScore: 0,
+  notes: ""
+};
+
 async function runAction(action: string, payload: Record<string, any> = {}) {
   const response = await fetch("/api/admin/client-acquisition/action", {
     method: "POST",
@@ -66,6 +89,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [activeDraft, setActiveDraft] = useState<any | null>(null);
   const [selectedDraftIds, setSelectedDraftIds] = useState<string[]>([]);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [runningAction, setRunningAction] = useState("");
   const [apolloFilters, setApolloFilters] = useState({
     includeKeywords: segments[0]?.apolloKeywords || "operations,revops,sales ops,customer success",
@@ -74,18 +98,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     emailStatus: "verified,likely to engage",
     perPage: 25
   });
-  const [manualLead, setManualLead] = useState({
-    companyName: "",
-    buyerName: "",
-    buyerTitle: "",
-    email: "",
-    industry: "",
-    country: "",
-    website: "",
-    segment: "general_b2b",
-    leadScore: 0,
-    notes: ""
-  });
+  const [manualLead, setManualLead] = useState(initialManualLead);
 
   const failedEmails = useMemo(() => new Set(events.filter((event: any) => event.event_type === "failed").map((event: any) => event.email).filter(Boolean)), [events]);
   const enrichedProspects = useMemo(() => prospects.map((prospect) => ({
@@ -110,16 +123,29 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const selectedDrafts = visibleDrafts.filter((draft) => selectedDraftIds.includes(draft.id));
 
   async function handleAction(action: string, payload: Record<string, any> = {}) {
-    setMessage("");
+    const actionLabel = actionLabels[action] || "Action";
+    setMessage(`${actionLabel} is running...`);
+    setMessageType("loading");
     setRunningAction(action);
     try {
       const result = await runAction(action, payload);
       const syncedCount = result.migrated ?? result.count;
       const sourceRows = result.sourceRows || result.migration?.sourceRows;
       const sourceSummary = sourceRows ? ` Source rows: approved ${sourceRows.approved || 0}, scored ${sourceRows.scored || 0}, raw ${sourceRows.raw || 0}.` : "";
-      setMessage(result.error || `Done.${result.draftsCreated !== undefined ? ` ${result.draftsCreated} drafts created.` : ""}${result.reviewed !== undefined ? ` ${result.reviewed} drafts marked reviewed.` : ""}${result.sent !== undefined ? ` ${result.sent} emails sent.` : ""}${result.failed !== undefined ? ` ${result.failed} failed.` : ""}${syncedCount !== undefined ? ` ${syncedCount} prospects synced.` : ""}${result.removed !== undefined ? ` ${result.removed} failed prospects removed.` : ""}${sourceSummary}`);
+      setMessageType(result.error ? "error" : "success");
+      setMessage(result.error || `${actionLabel} completed.${result.draftsCreated !== undefined ? ` ${result.draftsCreated} drafts created.` : ""}${result.reviewed !== undefined ? ` ${result.reviewed} drafts marked reviewed.` : ""}${result.sent !== undefined ? ` ${result.sent} emails sent.` : ""}${result.failed !== undefined ? ` ${result.failed} failed.` : ""}${syncedCount !== undefined ? ` ${syncedCount} prospects synced.` : ""}${result.removed !== undefined ? ` ${result.removed} failed prospects removed.` : ""}${sourceSummary}`);
+      if (action === "createManualProspect" && result.prospect) {
+        setActiveStage(result.prospect.prospect_status === "scored" ? "scored" : "raw");
+        setSearch(result.prospect.email || payload.email || "");
+        setRoleFilter("All");
+        setSelectedIds([]);
+        setManualLead(initialManualLead);
+        setMessageType("success");
+        setMessage(`Lead created successfully. View it in ${result.prospect.prospect_status === "scored" ? "Scored" : "Raw"} lead list, filtered by ${result.prospect.email}.`);
+      }
       router.refresh();
     } catch (error) {
+      setMessageType("error");
       setMessage(error instanceof Error ? error.message : "Action failed.");
     } finally {
       setRunningAction("");
@@ -145,6 +171,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   async function markActiveDraftReviewed() {
     if (!activeDraft?.id) {
       setMessage("Select a draft preview first.");
+      setMessageType("error");
       return;
     }
     const subject = (document.getElementById("draft-subject") as HTMLInputElement)?.value || activeDraft.subject_line;
@@ -157,6 +184,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   async function sendActiveDraft() {
     if (!activeDraft?.id) {
       setMessage("Select a draft preview first.");
+      setMessageType("error");
       return;
     }
     await handleAction("sendDraft", { draftId: activeDraft.id });
@@ -171,10 +199,23 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
             {runningAction === "migrateProspects" ? "Syncing..." : "Sync Google Sheets"}
           </button>
           <button className="rounded-md border border-red-200 px-4 py-3 text-sm font-bold text-red-700" disabled={Boolean(runningAction)} onClick={() => void handleAction("purgeFailedProspects")}>
-            Remove failed emails
+            {runningAction === "purgeFailedProspects" ? "Removing..." : "Remove failed emails"}
           </button>
         </div>
-        {message && <p className="mt-4 rounded-md bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">{message}</p>}
+      </div>
+
+      <div
+        className={`rounded-lg border px-5 py-4 text-sm font-bold leading-6 shadow-soft ${
+          messageType === "loading"
+            ? "border-amber-200 bg-amber-50 text-amber-800"
+            : messageType === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : messageType === "error"
+                ? "border-red-200 bg-red-50 text-red-800"
+                : "border-slate-200 bg-white text-slate-600"
+        }`}
+      >
+        {message || "Action status will appear here after you click any admin button."}
       </div>
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
@@ -286,8 +327,8 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
             <div className="flex flex-wrap gap-2">
               <button className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700" onClick={() => setSelectedDraftIds(visibleDrafts.map((draft) => draft.id).filter(Boolean))} type="button">Select all</button>
               <button className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700" onClick={() => setSelectedDraftIds([])} type="button">Unselect all</button>
-              <button className="rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white disabled:bg-slate-300" disabled={!selectedDraftIds.length || Boolean(runningAction)} onClick={() => void handleAction("reviewDraft", { draftIds: selectedDraftIds, status: "reviewed" })} type="button">Mark selected reviewed</button>
-              <button className="rounded-md bg-orange-500 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300" disabled={!selectedDraftIds.length || Boolean(runningAction)} onClick={() => void handleAction("sendDraft", { draftIds: selectedDraftIds })} type="button">Send selected</button>
+              <button className="rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white disabled:bg-slate-300" disabled={!selectedDraftIds.length || Boolean(runningAction)} onClick={() => void handleAction("reviewDraft", { draftIds: selectedDraftIds, status: "reviewed" })} type="button">{runningAction === "reviewDraft" ? "Marking..." : "Mark selected reviewed"}</button>
+              <button className="rounded-md bg-orange-500 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300" disabled={!selectedDraftIds.length || Boolean(runningAction)} onClick={() => void handleAction("sendDraft", { draftIds: selectedDraftIds })} type="button">{runningAction === "sendDraft" ? "Sending..." : "Send selected"}</button>
             </div>
           </div>
           <div className="mt-5 space-y-3">
@@ -320,10 +361,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button className="rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600 disabled:bg-slate-300" disabled={Boolean(runningAction)} onClick={() => void markActiveDraftReviewed()} type="button">
-                  Mark reviewed
+                  {runningAction === "reviewDraft" ? "Marking reviewed..." : "Mark reviewed"}
                 </button>
                 <button className="rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400 disabled:bg-slate-300" disabled={Boolean(runningAction)} onClick={() => void sendActiveDraft()} type="button">
-                  Send email
+                  {runningAction === "sendDraft" ? "Sending email..." : "Send email"}
                 </button>
               </div>
             </div>
@@ -347,8 +388,8 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
             <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setManualLead((current) => ({ ...current, leadScore: Number(event.target.value) }))} placeholder="Score" type="number" value={manualLead.leadScore} />
           </div>
           <textarea className="mt-3 min-h-24 w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setManualLead((current) => ({ ...current, notes: event.target.value }))} placeholder="Notes / pain / reason" value={manualLead.notes} />
-          <button className="mt-4 rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600" disabled={!manualLead.email || Boolean(runningAction)} onClick={() => void handleAction("createManualProspect", manualLead)}>
-            Create lead
+          <button className="mt-4 rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600 disabled:bg-slate-300" disabled={!manualLead.email || Boolean(runningAction)} onClick={() => void handleAction("createManualProspect", manualLead)}>
+            {runningAction === "createManualProspect" ? "Creating lead..." : "Create lead"}
           </button>
         </section>
 
