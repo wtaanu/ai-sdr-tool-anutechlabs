@@ -28,6 +28,7 @@ const stageConfig = [
 const actionLabels: Record<string, string> = {
   migrateProspects: "Google Sheets sync",
   purgeFailedProspects: "Failed email cleanup",
+  importApolloCsvRows: "Apollo CSV import",
   generateDrafts: "AI draft generation",
   generateProspects: "Apollo lead pull",
   updateProspectStatus: "Lead stage update",
@@ -70,6 +71,42 @@ async function runAction(action: string, payload: Record<string, any> = {}) {
 
 function splitList(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function parseCsv(text: string) {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let value = "";
+  let quoted = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === "\"" && quoted && next === "\"") {
+      value += "\"";
+      index += 1;
+    } else if (char === "\"") {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      row.push(value);
+      value = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(value);
+      if (row.some((cell) => cell.trim())) rows.push(row);
+      row = [];
+      value = "";
+    } else {
+      value += char;
+    }
+  }
+
+  row.push(value);
+  if (row.some((cell) => cell.trim())) rows.push(row);
+
+  const headers = rows.shift()?.map((header) => header.trim()) || [];
+  return rows.map((cells) => Object.fromEntries(headers.map((header, index) => [header, cells[index] || ""])));
 }
 
 export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashboard | null }) {
@@ -302,6 +339,28 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     setActiveDraft((current: any) => current ? { ...current, draft_status: "sent", send_result: "sent" } : current);
   }
 
+  async function importApolloCsv(file: File | null) {
+    if (!file) return;
+    setMessage(`Reading ${file.name}...`);
+    setMessageType("loading");
+    try {
+      const rows = parseCsv(await file.text());
+      const result = await runAction("importApolloCsvRows", { rows, segment: "apollo_csv_accounts" });
+      setMessageType("success");
+      setActiveStage("raw");
+      setSourceFilter("apollo_api");
+      setSearch("");
+      setRoleFilter("All");
+      setOutreachFilter("All");
+      setProspectPage(1);
+      setMessage(`Apollo CSV import completed. ${result.imported || 0} rows added/updated as Apollo pulled Raw leads. ${result.missingEmail || 0} account rows need contact email enrichment before sending.`);
+      router.refresh();
+    } catch (error) {
+      setMessageType("error");
+      setMessage(error instanceof Error ? error.message : "Apollo CSV import failed.");
+    }
+  }
+
   return (
     <section className="mt-8 space-y-8">
       <div className="flex flex-col justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-soft lg:flex-row lg:items-center">
@@ -312,6 +371,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
           <button className="rounded-md border border-red-200 px-4 py-3 text-sm font-bold text-red-700" disabled={Boolean(runningAction)} onClick={() => void handleAction("purgeFailedProspects")}>
             {runningAction === "purgeFailedProspects" ? "Removing..." : "Remove failed emails"}
           </button>
+          <label className="cursor-pointer rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-black text-orange-700 hover:border-orange-400">
+            Import Apollo CSV to Raw
+            <input accept=".csv,text/csv" className="hidden" disabled={Boolean(runningAction)} onChange={(event) => void importApolloCsv(event.target.files?.[0] || null)} type="file" />
+          </label>
         </div>
       </div>
 
