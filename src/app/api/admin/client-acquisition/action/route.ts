@@ -64,6 +64,7 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
   const now = new Date().toISOString();
   const recordsByLeadId = new Map<string, Record<string, unknown>>();
   const duplicateRows = { count: 0 };
+  const missingEmailRows = { count: 0 };
   rows
     .map((row, index) => {
       const companyName = stringValue(row, ["Company Name", "Company", "company_name", "Organization Name"]);
@@ -82,6 +83,10 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
       const fitScore = Number(stringValue(row, ["Account Fit Score 2887 0504045328", "Account Fit Score", "Fit Score"]) || 0);
 
       if (!companyName && !email && !website) return null;
+      if (!email) {
+        missingEmailRows.count += 1;
+        return null;
+      }
 
       return {
         lead_id: csvLeadId(row, index),
@@ -89,7 +94,7 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
         company_name: companyName || null,
         buyer_name: buyerName || null,
         buyer_title: buyerTitle || null,
-        email: email || null,
+        email,
         country: country || null,
         industry: industry || null,
         employee_count: employees || null,
@@ -104,8 +109,8 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
         roi_reason: null,
         lead_score: Number.isFinite(fitScore) ? fitScore : 0,
         fit_score: Number.isFinite(fitScore) ? fitScore : null,
-        verification_status: email ? "pending" : "needs_contact_enrichment",
-        verification_notes: email ? "Imported from Apollo CSV." : "Apollo account import has no contact email. Enrich buyer email before sending.",
+        verification_status: "pending",
+        verification_notes: "Imported from Apollo CSV.",
         prospect_status: "new",
         raw_payload: row,
         updated_at: now
@@ -131,7 +136,7 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, imported: data?.length || 0, count: data?.length || 0, source: "apollo_api", missingEmail: records.filter((record: any) => !record.email).length, duplicatesInCsv: duplicateRows.count });
+  return NextResponse.json({ ok: true, imported: data?.length || 0, count: data?.length || 0, source: "apollo_api", missingEmail: missingEmailRows.count, duplicatesInCsv: duplicateRows.count });
 }
 
 async function createManualProspect(payload: Record<string, unknown>) {
