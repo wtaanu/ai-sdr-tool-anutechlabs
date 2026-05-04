@@ -20,7 +20,7 @@ const stageConfig = [
   { id: "scored", label: "Scored", statuses: ["scored"] },
   { id: "approved", label: "Approved", statuses: ["verified"] },
   { id: "sent", label: "Sent", statuses: ["sent", "sequence_complete"] },
-  { id: "followup", label: "Follow-up pending", statuses: ["followup_due", "sent"] },
+  { id: "followup", label: "Follow-up due", statuses: ["followup_due", "sent"] },
   { id: "failed", label: "Failed", statuses: ["failed"] },
   { id: "replied", label: "Replies", statuses: ["replied"] }
 ];
@@ -47,6 +47,8 @@ const initialManualLead = {
   leadScore: 0,
   notes: ""
 };
+
+const pageSize = 50;
 
 async function runAction(action: string, payload: Record<string, any> = {}) {
   const response = await fetch("/api/admin/client-acquisition/action", {
@@ -81,6 +83,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [prospectPage, setProspectPage] = useState(1);
   const [segment, setSegment] = useState(segments[0]?.id || "saas_founders");
   const [mailType, setMailType] = useState(mailTypes[0]?.id || "intro_value_prop");
   const [sourceList, setSourceList] = useState("raw");
@@ -99,6 +102,8 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     companySize: "",
     excludeKeywords: "",
     revenue: "",
+    page: 1,
+    pagesToPull: 1,
     perPage: 25
   });
   const [manualLead, setManualLead] = useState(initialManualLead);
@@ -117,21 +122,46 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     ...prospect,
     prospect_status: failedEmails.has(prospect.email) ? "failed" : prospect.prospect_status
   })), [prospects, failedEmails]);
-
   const activeConfig = stageConfig.find((stage) => stage.id === activeStage) || stageConfig[0];
+  const dueForFollowup = (prospect: any) => Boolean(
+    prospect.next_followup_at
+      && new Date(prospect.next_followup_at).getTime() <= Date.now()
+      && !prospect.replied_at
+      && !prospect.unsubscribed_at
+      && Number(prospect.followup_count || 0) < 3
+  );
+  const matchesStage = (prospect: any, stage = activeConfig) => {
+    if (stage.id === "followup") return dueForFollowup(prospect);
+    return stage.statuses.includes(prospect.prospect_status);
+  };
+
   const stageCounts = Object.fromEntries(stageConfig.map((stage) => [
     stage.id,
-    enrichedProspects.filter((prospect) => stage.statuses.includes(prospect.prospect_status)).length
+    dashboard?.stats?.exactStageCounts?.[stage.id] ?? enrichedProspects.filter((prospect) => matchesStage(prospect, stage)).length
   ]));
   const roleOptions = Array.from(new Set(enrichedProspects.map((prospect) => prospect.buyer_title).filter(Boolean))).slice(0, 50);
   const visibleProspects = enrichedProspects.filter((prospect) => {
     const haystack = `${prospect.company_name || ""} ${prospect.buyer_name || ""} ${prospect.email || ""} ${prospect.industry || ""} ${prospect.country || ""} ${prospect.segment || ""} ${prospect.buyer_title || ""}`.toLowerCase();
-    return activeConfig.statuses.includes(prospect.prospect_status)
+    return matchesStage(prospect)
       && (!search || haystack.includes(search.toLowerCase()))
       && (roleFilter === "All" || prospect.buyer_title === roleFilter);
   });
-  const selectedProspects = visibleProspects.filter((prospect) => selectedIds.includes(prospect.id));
-  const visibleDrafts = drafts.slice(0, 50);
+  const totalProspectPages = Math.max(1, Math.ceil(visibleProspects.length / pageSize));
+  const currentProspectPage = Math.min(prospectPage, totalProspectPages);
+  const pagedProspects = visibleProspects.slice((currentProspectPage - 1) * pageSize, currentProspectPage * pageSize);
+  const selectedProspects = pagedProspects.filter((prospect) => selectedIds.includes(prospect.id));
+  const visibleLeadIds = new Set(visibleProspects.map((prospect) => prospect.lead_id).filter(Boolean));
+  const visibleEmails = new Set(visibleProspects.map((prospect) => prospect.email).filter(Boolean));
+  const visibleDrafts = drafts
+    .filter((draft) => {
+      if (["sent", "followup", "failed"].includes(activeStage)) {
+        const leadId = draft.lead_id || draft.sales_prospects?.lead_id;
+        const email = draft.sales_prospects?.email;
+        return visibleLeadIds.has(leadId) || visibleEmails.has(email);
+      }
+      return true;
+    })
+    .slice(0, 100);
   const selectedDrafts = visibleDrafts.filter((draft) => selectedDraftIds.includes(draft.id));
 
   async function handleAction(action: string, payload: Record<string, any> = {}) {
@@ -149,14 +179,25 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         : "";
       setMessageType(result.error ? "error" : "success");
       setMessage(result.error || `${actionLabel} completed.${result.draftsCreated !== undefined ? ` ${result.draftsCreated} drafts created.` : ""}${result.reviewed !== undefined ? ` ${result.reviewed} drafts marked reviewed.` : ""}${result.sent !== undefined ? ` ${result.sent} emails sent.` : ""}${result.failed !== undefined ? ` ${result.failed} failed.` : ""}${failedPreview ? ` Failed examples: ${failedPreview}` : ""}${syncedCount !== undefined ? ` ${syncedCount} prospects synced.` : ""}${result.removed !== undefined ? ` ${result.removed} failed prospects removed.` : ""}${sourceSummary}`);
+      if (action === "generateProspects") {
+        const nextPage = Number(result.nextPage || payload.apolloFilters?.page || apolloFilters.page);
+        setApolloFilters((current) => ({ ...current, page: nextPage }));
+        setActiveStage("raw");
+        setSearch("");
+        setRoleFilter("All");
+        setMessageType("success");
+        setMessage(`Apollo pull completed. Imported ${result.imported || 0} new prospects, skipped ${result.duplicatesSkipped || 0} duplicates, pages pulled: ${(result.pagesPulled || []).join(", ") || "none"}. Next pull will start at page ${nextPage}.`);
+      }
       if (action === "sendDraft" && Number(result.failed || 0) > 0) {
         setMessageType("error");
         setActiveStage("failed");
+        setProspectPage(1);
         setSelectedDraftIds([]);
         setSelectedIds([]);
       }
       if (action === "createManualProspect" && result.prospect) {
         setActiveStage(result.prospect.prospect_status === "scored" ? "scored" : "raw");
+        setProspectPage(1);
         setSearch(result.prospect.email || payload.email || "");
         setRoleFilter("All");
         setSelectedIds([]);
@@ -178,7 +219,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   }
 
   function selectVisible() {
-    setSelectedIds(visibleProspects.map((prospect) => prospect.id));
+    setSelectedIds(pagedProspects.map((prospect) => prospect.id));
   }
 
   function toggleDraft(id: string) {
@@ -241,7 +282,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
         {stageConfig.map((stage) => (
-          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); }}>
+          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); setProspectPage(1); }}>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{stage.label}</p>
             <p className="mt-2 text-2xl font-black text-slate-950">{stageCounts[stage.id] || 0}</p>
           </button>
@@ -253,27 +294,27 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
           <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
             <div>
               <h3 className="text-xl font-black text-slate-950">{activeConfig.label} lead list</h3>
-              <p className="mt-1 text-sm text-slate-500">{selectedProspects.length} selected from {visibleProspects.length} visible rows.</p>
+              <p className="mt-1 text-sm text-slate-500">{selectedProspects.length} selected from page {currentProspectPage} of {totalProspectPages}. {visibleProspects.length} total rows.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700" onClick={selectVisible}>Select visible</button>
+              <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700" onClick={selectVisible}>Select page</button>
               <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700" onClick={() => setSelectedIds([])}>Unselect all</button>
             </div>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
-            <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setSearch(event.target.value)} placeholder="Search company, email, industry, country, role" value={search} />
-            <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setRoleFilter(event.target.value)} value={roleFilter}>
+            <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setSearch(event.target.value); setProspectPage(1); }} placeholder="Search company, email, industry, country, role" value={search} />
+            <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setRoleFilter(event.target.value); setProspectPage(1); }} value={roleFilter}>
               <option>All</option>
               {roleOptions.map((role) => <option key={role}>{role}</option>)}
             </select>
           </div>
-          <div className="mt-5 max-h-[620px] overflow-auto">
+          <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="sticky top-0 bg-white text-xs uppercase tracking-[0.12em] text-slate-500">
                 <tr><th className="py-3 pr-3">Pick</th><th className="py-3 pr-4">Lead</th><th className="py-3 pr-4">Segment</th><th className="py-3 pr-4">Score</th><th className="py-3 pr-4">Status</th></tr>
               </thead>
               <tbody>
-                {visibleProspects.map((prospect) => {
+                {pagedProspects.map((prospect) => {
                   const failure = latestFailureByEmail.get(prospect.email);
                   return (<>
                   <tr key={prospect.id} className="border-t border-slate-100">
@@ -293,9 +334,19 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                     )}
                   </>
                 )})}
-                {!visibleProspects.length && <tr><td className="py-5 text-slate-500" colSpan={5}>No leads in this stage yet. Sync Sheets or pull Apollo leads.</td></tr>}
+                {!pagedProspects.length && <tr><td className="py-5 text-slate-500" colSpan={5}>No leads in this stage yet. Sync Sheets or pull Apollo leads.</td></tr>}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4 flex flex-col justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
+            <p className="text-sm font-semibold text-slate-500">
+              Showing {visibleProspects.length ? (currentProspectPage - 1) * pageSize + 1 : 0}-{Math.min(currentProspectPage * pageSize, visibleProspects.length)} of {visibleProspects.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40" disabled={currentProspectPage <= 1} onClick={() => { setSelectedIds([]); setProspectPage((page) => Math.max(1, page - 1)); }} type="button">Previous</button>
+              <span className="rounded-md bg-slate-50 px-3 py-2 text-sm font-black text-slate-700">{currentProspectPage} / {totalProspectPages}</span>
+              <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40" disabled={currentProspectPage >= totalProspectPages} onClick={() => { setSelectedIds([]); setProspectPage((page) => Math.min(totalProspectPages, page + 1)); }} type="button">Next</button>
+            </div>
           </div>
         </section>
 
@@ -333,10 +384,15 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, targetTitles: event.target.value }))} placeholder="Target roles" value={apolloFilters.targetTitles} />
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, targetLocations: event.target.value }))} placeholder="Target countries/locations" value={apolloFilters.targetLocations} />
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, emailStatus: event.target.value }))} placeholder="Email status" value={apolloFilters.emailStatus} />
-              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, companySize: event.target.value }))} placeholder="Company size, optional. Example: 1-10,11-50,51-200" value={apolloFilters.companySize} />
-              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, excludeKeywords: event.target.value }))} placeholder="Exclude keywords, optional. Example: student,intern,freelance" value={apolloFilters.excludeKeywords} />
-              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, revenue: event.target.value }))} placeholder="Revenue, optional. Example: 1M-10M,10M-50M" value={apolloFilters.revenue} />
-              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, perPage: Number(event.target.value) }))} type="number" value={apolloFilters.perPage} />
+              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, companySize: event.target.value }))} placeholder="Company size, optional. Example: 15-500 or 11-50,51-200" value={apolloFilters.companySize} />
+              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, excludeKeywords: event.target.value }))} placeholder="Exclude keywords, optional. Example: freelancer,independent,solo" value={apolloFilters.excludeKeywords} />
+              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, revenue: event.target.value }))} placeholder="Revenue, optional. Example: $500K-$20M or 1M-10M" value={apolloFilters.revenue} />
+              <div className="grid gap-3 sm:grid-cols-3">
+                <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, page: Number(event.target.value) }))} placeholder="Apollo page" type="number" value={apolloFilters.page} />
+                <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={10} min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, pagesToPull: Number(event.target.value) }))} placeholder="Pages to pull" type="number" value={apolloFilters.pagesToPull} />
+                <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, perPage: Number(event.target.value) }))} placeholder="Per page max 100" type="number" value={apolloFilters.perPage} />
+              </div>
+              <p className="text-xs font-semibold leading-5 text-slate-500">Apollo allows up to 100 per page. For 500 leads, set pages to pull as 5. The next pull automatically moves to the next page and skips existing emails.</p>
               <button className="w-full rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600" disabled={Boolean(runningAction)} onClick={() => void handleAction("generateProspects", {
                 mode: "new",
                 apolloFilters: {
@@ -347,10 +403,13 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                   emailStatus: splitList(apolloFilters.emailStatus),
                   companySize: splitList(apolloFilters.companySize),
                   excludeKeywords: splitList(apolloFilters.excludeKeywords),
-                  revenue: splitList(apolloFilters.revenue)
+                  revenue: splitList(apolloFilters.revenue),
+                  page: apolloFilters.page,
+                  pagesToPull: apolloFilters.pagesToPull,
+                  perPage: apolloFilters.perPage
                 }
               })}>
-                Pull Apollo leads + auto score
+                {runningAction === "generateProspects" ? "Pulling Apollo leads..." : `Pull Apollo leads from page ${apolloFilters.page}`}
               </button>
             </div>
           </section>

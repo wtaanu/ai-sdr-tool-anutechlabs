@@ -40,6 +40,7 @@ type SharedEvent = {
   email: string | null;
   subject_line: string | null;
   event_type: string;
+  detail?: string | null;
   created_at: string | null;
 };
 
@@ -77,6 +78,102 @@ async function getBridgeSalesDashboard(apiUrl: string) {
   }
 }
 
+async function countSalesProspects(status: string) {
+  const supabase = getSupabaseAdminClient();
+  const { count, error } = await supabase
+    .from("sales_prospects")
+    .select("id", { count: "exact", head: true })
+    .eq("prospect_status", status);
+  return error ? 0 : count || 0;
+}
+
+async function countFollowupDueProspects() {
+  const supabase = getSupabaseAdminClient();
+  const { count, error } = await supabase
+    .from("sales_prospects")
+    .select("id", { count: "exact", head: true })
+    .not("next_followup_at", "is", null)
+    .lte("next_followup_at", new Date().toISOString())
+    .is("replied_at", null)
+    .is("unsubscribed_at", null)
+    .lt("followup_count", 3);
+  return error ? 0 : count || 0;
+}
+
+async function getSupabaseSalesDashboardFallback() {
+  try {
+    const supabase = getSupabaseAdminClient();
+    const [prospects, drafts, replies, events, customSegments, rawCount, scoredCount, approvedCount, sentCount, failedCount, repliedCount, followupDueCount] = await Promise.all([
+      supabase.from("sales_prospects").select("*").order("updated_at", { ascending: false }).limit(1000),
+      supabase.from("sales_email_drafts").select("*, sales_prospects(company_name,buyer_name,email,industry,segment,prospect_status,followup_count,last_sent_at,next_followup_at)").order("updated_at", { ascending: false }).limit(1000),
+      supabase.from("sales_inbox_replies").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("client_acquisition_email_events").select("*").order("created_at", { ascending: false }).limit(1000),
+      supabase.from("sales_segments").select("*").eq("is_active", true).order("created_at", { ascending: false }),
+      countSalesProspects("new"),
+      countSalesProspects("scored"),
+      countSalesProspects("verified"),
+      countSalesProspects("sent"),
+      countSalesProspects("failed"),
+      countSalesProspects("replied"),
+      countFollowupDueProspects()
+    ]);
+
+    const prospectRows = prospects.data || [];
+    const prospectSegments = Object.values(prospectRows.reduce((acc: Record<string, any>, prospect: any) => {
+      const segment = prospect.segment || "general_b2b";
+      if (!acc[segment]) {
+        acc[segment] = {
+          id: segment,
+          label: segment.split(/[_-]+/).filter(Boolean).map((part: string) => part.charAt(0).toUpperCase() + part.slice(1)).join(" "),
+          targetCount: 0,
+          apolloKeywords: prospect.industry || segment,
+          titles: prospect.buyer_title || ""
+        };
+      }
+      acc[segment].targetCount += 1;
+      return acc;
+    }, {}));
+
+    return {
+      ok: !(prospects.error || drafts.error || replies.error || events.error || customSegments.error),
+      prospects: prospectRows,
+      drafts: drafts.data || [],
+      replies: replies.data || [],
+      events: events.data || [],
+      customSegments: customSegments.data || [],
+      prospectSegments,
+      stats: {
+        totalProspects: prospectRows.length,
+        exactStageCounts: {
+          raw: rawCount,
+          scored: scoredCount,
+          approved: approvedCount,
+          sent: sentCount,
+          failed: failedCount,
+          replied: repliedCount,
+          followup: followupDueCount
+        },
+        byStatus: prospectRows.reduce((acc: Record<string, number>, row: any) => {
+          acc[row.prospect_status || "unknown"] = (acc[row.prospect_status || "unknown"] || 0) + 1;
+          return acc;
+        }, {})
+      },
+      error: prospects.error?.message || drafts.error?.message || replies.error?.message || events.error?.message || customSegments.error?.message || ""
+    };
+  } catch (error) {
+    return {
+      prospects: [],
+      drafts: [],
+      replies: [],
+      events: [],
+      customSegments: [],
+      prospectSegments: [],
+      stats: {},
+      error: error instanceof Error ? error.message : "Supabase sales fallback failed."
+    };
+  }
+}
+
 async function countRows(table: string, filter?: { column: string; value: string }) {
   const supabase = getSupabaseAdminClient();
   let query = supabase.from(table).select("id", { count: "exact", head: true });
@@ -89,10 +186,19 @@ async function countRows(table: string, filter?: { column: string; value: string
   return error ? 0 : count || 0;
 }
 
+async function countSalesDrafts(status: string) {
+  const supabase = getSupabaseAdminClient();
+  const { count, error } = await supabase
+    .from("sales_email_drafts")
+    .select("id", { count: "exact", head: true })
+    .eq("draft_status", status);
+  return error ? 0 : count || 0;
+}
+
 async function getSharedFunnelData() {
   try {
     const supabase = getSupabaseAdminClient();
-    const [draftsResult, jobsResult, eventsResult, totalDrafts, sentEvents, queuedEvents, failedEvents, aiSdrDrafts, apolloDrafts] = await Promise.all([
+    const [draftsResult, jobsResult, eventsResult, totalDrafts, sentEvents, queuedEvents, failedEvents, aiSdrDrafts, apolloDrafts, salesTotalDrafts, salesReadyDrafts, salesReviewedDrafts, salesSentDrafts, salesFailedDrafts] = await Promise.all([
       supabase
         .from("client_acquisition_outreach_drafts")
         .select("draft_id,draft_source,source_record_id,company_name,buyer_name,email,subject_line,draft_status,send_result")
@@ -105,15 +211,20 @@ async function getSharedFunnelData() {
         .limit(8),
       supabase
         .from("client_acquisition_email_events")
-        .select("draft_id,draft_source,source_record_id,email,subject_line,event_type,created_at")
+        .select("draft_id,draft_source,source_record_id,email,subject_line,event_type,detail,created_at")
         .order("created_at", { ascending: false })
-        .limit(10),
+        .limit(1000),
       countRows("client_acquisition_outreach_drafts"),
       countRows("client_acquisition_email_events", { column: "event_type", value: "sent" }),
       countRows("client_acquisition_email_events", { column: "event_type", value: "queued_draft" }),
       countRows("client_acquisition_email_events", { column: "event_type", value: "failed" }),
       countRows("client_acquisition_outreach_drafts", { column: "draft_source", value: "ai_sdr" }),
-      countRows("client_acquisition_outreach_drafts", { column: "draft_source", value: "apollo_client_acquisition" })
+      countRows("client_acquisition_outreach_drafts", { column: "draft_source", value: "apollo_client_acquisition" }),
+      countRows("sales_email_drafts"),
+      countSalesDrafts("ready"),
+      countSalesDrafts("reviewed"),
+      countSalesDrafts("sent"),
+      countSalesDrafts("failed")
     ]);
 
     return {
@@ -121,10 +232,10 @@ async function getSharedFunnelData() {
       jobs: (jobsResult.data || []) as SharedJob[],
       events: (eventsResult.data || []) as SharedEvent[],
       stats: {
-        totalDrafts,
-        sentEvents,
-        queuedEvents,
-        failedEvents,
+        totalDrafts: Math.max(totalDrafts, salesTotalDrafts),
+        sentEvents: Math.max(sentEvents, salesSentDrafts),
+        queuedEvents: Math.max(queuedEvents, salesReadyDrafts + salesReviewedDrafts),
+        failedEvents: Math.max(failedEvents, salesFailedDrafts),
         aiSdrDrafts,
         apolloDrafts
       },
@@ -155,9 +266,12 @@ function formatDate(value: string | null) {
 export default async function ClientAcquisitionPage() {
   await requireAdminSession();
   const apiUrl = process.env.CLIENT_ACQUISITION_API_URL || "";
-  const [bridgeHealth, sharedFunnel, bridgeSalesDashboard] = await Promise.all([getBridgeHealth(apiUrl), getSharedFunnelData(), getBridgeSalesDashboard(apiUrl)]);
+  const [bridgeHealth, sharedFunnel, bridgeSalesDashboard, supabaseSalesDashboard] = await Promise.all([getBridgeHealth(apiUrl), getSharedFunnelData(), getBridgeSalesDashboard(apiUrl), getSupabaseSalesDashboardFallback()]);
   const futureSourceCount = Math.max(sharedFunnel.stats.totalDrafts - sharedFunnel.stats.aiSdrDrafts - sharedFunnel.stats.apolloDrafts, 0);
-  const mergedDashboard = bridgeSalesDashboard ? { ...bridgeSalesDashboard, emailEvents: sharedFunnel.events } : { emailEvents: sharedFunnel.events };
+  const sourceDashboard = (supabaseSalesDashboard.prospects?.length || 0) >= (bridgeSalesDashboard?.prospects?.length || 0) ? supabaseSalesDashboard : bridgeSalesDashboard;
+  const mergedDashboard = bridgeSalesDashboard
+    ? { ...bridgeSalesDashboard, ...sourceDashboard, emailEvents: [...(bridgeSalesDashboard.events || []), ...(supabaseSalesDashboard.events || []), ...sharedFunnel.events] }
+    : { emailEvents: sharedFunnel.events };
   const readiness = [
     ["Railway bridge", Boolean(bridgeHealth?.ok), bridgeHealth?.service || "Bridge not reachable"],
     ["Email provider", Boolean(bridgeHealth?.emailProvider?.activeProvider && bridgeHealth.emailProvider.activeProvider !== "none"), bridgeHealth?.emailProvider?.activeProvider || "Not detected"],
