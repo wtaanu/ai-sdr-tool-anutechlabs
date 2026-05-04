@@ -117,6 +117,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const events = dashboard?.emailEvents || dashboard?.events || [];
   const segments = dashboard?.segments || [];
   const mailTypes = dashboard?.mailTypes || [];
+  const availableMailTypes = mailTypes.some((item) => item.id === "custom_instruction")
+    ? mailTypes
+    : [{ id: "custom_instruction", label: "Custom pasted email logic" }, ...mailTypes];
 
   const [activeStage, setActiveStage] = useState("raw");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -127,12 +130,14 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [prospectPage, setProspectPage] = useState(1);
   const [draftPage, setDraftPage] = useState(1);
   const [segment, setSegment] = useState(segments[0]?.id || "saas_founders");
-  const [mailType, setMailType] = useState(mailTypes[0]?.id || "intro_value_prop");
+  const [mailType, setMailType] = useState("custom_instruction");
   const [sourceList, setSourceList] = useState("raw");
   const [limit, setLimit] = useState(50);
   const [draftInstruction, setDraftInstruction] = useState("");
   const [activeDraft, setActiveDraft] = useState<any | null>(null);
   const [generatedDrafts, setGeneratedDrafts] = useState<any[]>([]);
+  const [draftBatchIds, setDraftBatchIds] = useState<string[]>([]);
+  const [draftQueueMode, setDraftQueueMode] = useState<"batch" | "visible">("visible");
   const [selectedDraftIds, setSelectedDraftIds] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -234,10 +239,12 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     }
     return Array.from(byId.values());
   }, [drafts, generatedDrafts]);
+  const draftBatchIdSet = new Set(draftBatchIds);
   const filteredDrafts = allDrafts
     .filter((draft) => {
       if (draft.send_result === "sent" || ["sent", "failed"].includes(draft.draft_status)) return false;
       if (!["ready", "reviewed"].includes(draft.draft_status)) return false;
+      if (draftQueueMode === "batch" && draftBatchIds.length) return draftBatchIdSet.has(draft.id);
       const leadId = draft.lead_id || draft.sales_prospects?.lead_id;
       const email = draft.sales_prospects?.email;
       return visibleLeadIds.has(leadId) || visibleEmails.has(email);
@@ -279,9 +286,12 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
       }
       if (action === "generateDrafts") {
         const newDrafts = Array.isArray(result.drafts) ? result.drafts : [];
+        const newDraftIds = newDrafts.map((draft: any) => draft.id).filter(Boolean);
         setGeneratedDrafts(newDrafts);
+        setDraftBatchIds(newDraftIds);
+        setDraftQueueMode("batch");
         setDraftPage(1);
-        setSelectedDraftIds(newDrafts.map((draft: any) => draft.id).filter(Boolean));
+        setSelectedDraftIds(newDraftIds);
         setActiveDraft(newDrafts[0] || null);
         setMessageType(newDrafts.length ? "success" : "error");
         setMessage(newDrafts.length
@@ -299,6 +309,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
       if (action === "sendDraft" && Number(result.sent || 0) > 0) {
         const sentIds = new Set((payload.draftIds || [payload.draftId]).filter(Boolean));
         setGeneratedDrafts((current) => current.filter((draft) => !sentIds.has(draft.id)));
+        setDraftBatchIds((current) => current.filter((id) => !sentIds.has(id)));
         setSelectedDraftIds([]);
         setActiveDraft(null);
       }
@@ -421,7 +432,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
         {stageConfig.map((stage) => (
-          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSourceList(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); setOutreachFilter("All"); }}>
+          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSourceList(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); setOutreachFilter("All"); setDraftQueueMode("visible"); }}>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{stage.label}</p>
             <p className="mt-2 text-2xl font-black text-slate-950">{stageCounts[stage.id] || 0}</p>
           </button>
@@ -548,10 +559,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                 {segments.map((item) => <option key={item.id} value={item.id}>{item.label} ({item.targetCount})</option>)}
               </select>
               <select className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setMailType(event.target.value)} value={mailType}>
-                {mailTypes.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                {availableMailTypes.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
               </select>
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setLimit(Number(event.target.value))} type="number" value={limit} />
-              <textarea className="min-h-36 w-full rounded-md border border-slate-300 px-3 py-3 text-sm leading-6" onChange={(event) => setDraftInstruction(event.target.value)} placeholder="Optional AI draft instruction: paste your video URL, offer, email structure, CTA, objections, tone, or special personalization notes." value={draftInstruction} />
+              <textarea className="min-h-48 w-full rounded-md border border-slate-300 px-3 py-3 text-sm leading-6" onChange={(event) => setDraftInstruction(event.target.value)} placeholder="Paste your custom email logic here. Use Subject:, Hi [Name], [Company], {{free_audit_url}}, {{calendar_link}}, or your full email draft. Custom pasted email logic uses this as the main draft structure." value={draftInstruction} />
               <button className="w-full rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400 disabled:opacity-60" disabled={Boolean(runningAction)} onClick={() => {
                 const fallbackIds = visibleProspects.slice(0, limit).map((prospect) => prospect.id).filter(Boolean);
                 const prospectIds = selectedIds.length ? selectedIds : fallbackIds;
@@ -607,7 +618,16 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
 
       <div className="space-y-8" id="draft-review">
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
-          <h3 className="text-xl font-black text-slate-950">Draft review queue</h3>
+          <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+            <div>
+              <h3 className="text-xl font-black text-slate-950">Draft review queue</h3>
+              <p className="mt-1 text-sm text-slate-500">{draftQueueMode === "batch" && draftBatchIds.length ? `Showing current generated batch: ${draftBatchIds.length} drafts.` : "Showing unsent drafts for the visible lead list."}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button className={`rounded-md border px-3 py-2 text-xs font-bold ${draftQueueMode === "batch" ? "border-orange-300 bg-orange-50 text-orange-700" : "border-slate-300 bg-white text-slate-700"}`} disabled={!draftBatchIds.length} onClick={() => { setDraftQueueMode("batch"); setDraftPage(1); setSelectedDraftIds(draftBatchIds); }} type="button">Current batch</button>
+              <button className={`rounded-md border px-3 py-2 text-xs font-bold ${draftQueueMode === "visible" ? "border-orange-300 bg-orange-50 text-orange-700" : "border-slate-300 bg-white text-slate-700"}`} onClick={() => { setDraftQueueMode("visible"); setDraftPage(1); setSelectedDraftIds([]); }} type="button">Visible lead drafts</button>
+            </div>
+          </div>
           <div className="mt-4 flex flex-col justify-between gap-3 rounded-md bg-slate-50 p-3 sm:flex-row sm:items-center">
             <p className="text-sm text-slate-600">{selectedDrafts.length} selected from page {currentDraftPage} of {totalDraftPages}. {filteredDrafts.length} total drafts.</p>
             <div className="flex flex-wrap gap-2">
