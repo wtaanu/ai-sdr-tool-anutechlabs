@@ -12,6 +12,7 @@ const allowedActions: Record<string, string> = {
   generateDrafts: "/api/campaigns/generate-drafts",
   reviewDraft: "/api/drafts/review",
   sendDraft: "/api/drafts/send",
+  updateProspectStatus: "local",
   createSegment: "/api/segments"
 };
 
@@ -76,6 +77,41 @@ async function createManualProspect(payload: Record<string, unknown>) {
   return NextResponse.json({ ok: true, prospect: data, count: 1 });
 }
 
+async function updateProspectStatus(payload: Record<string, unknown>) {
+  const ids = Array.isArray(payload.prospectIds) ? payload.prospectIds.map(String).filter(Boolean) : [];
+  const prospectStatus = String(payload.prospectStatus || "").trim();
+
+  if (!ids.length) {
+    return NextResponse.json({ error: "Select at least one lead first." }, { status: 400 });
+  }
+
+  if (!["new", "scored", "verified", "sent", "failed", "replied"].includes(prospectStatus)) {
+    return NextResponse.json({ error: "Unsupported prospect status." }, { status: 400 });
+  }
+
+  const updatePayload: Record<string, unknown> = {
+    prospect_status: prospectStatus,
+    updated_at: new Date().toISOString()
+  };
+
+  if (prospectStatus === "verified") {
+    updatePayload.verification_status = "approved_for_review";
+  }
+
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("sales_prospects")
+    .update(updatePayload)
+    .in("id", ids)
+    .select("id,email,prospect_status");
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, updated: data?.length || 0, prospects: data || [] });
+}
+
 export async function POST(request: Request) {
   const traceId = createTraceId("sales_bridge");
   const cookieStore = await cookies();
@@ -101,6 +137,14 @@ export async function POST(request: Request) {
     await logTransaction({ traceId, eventName: "manual_sales_prospect_started", route: "/api/admin/client-acquisition/action", email: session.email, status: "started" });
     const response = await createManualProspect(body.payload || {});
     await logTransaction({ traceId, eventName: "manual_sales_prospect_completed", route: "/api/admin/client-acquisition/action", email: session.email, status: response.ok ? "completed" : "failed", metadata: { statusCode: response.status } });
+    const result = await response.json();
+    return NextResponse.json({ ...result, traceId }, { status: response.status });
+  }
+
+  if (body.action === "updateProspectStatus") {
+    await logTransaction({ traceId, eventName: "sales_prospect_status_started", route: "/api/admin/client-acquisition/action", email: session.email, status: "started", metadata: { payload: body.payload } });
+    const response = await updateProspectStatus(body.payload || {});
+    await logTransaction({ traceId, eventName: "sales_prospect_status_completed", route: "/api/admin/client-acquisition/action", email: session.email, status: response.ok ? "completed" : "failed", metadata: { statusCode: response.status } });
     const result = await response.json();
     return NextResponse.json({ ...result, traceId }, { status: response.status });
   }

@@ -30,6 +30,7 @@ const actionLabels: Record<string, string> = {
   purgeFailedProspects: "Failed email cleanup",
   generateDrafts: "AI draft generation",
   generateProspects: "Apollo lead pull",
+  updateProspectStatus: "Lead stage update",
   reviewDraft: "Draft review",
   sendDraft: "Email send",
   createManualProspect: "Manual lead creation"
@@ -85,6 +86,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [outreachFilter, setOutreachFilter] = useState("All");
+  const [sourceFilter, setSourceFilter] = useState("All");
   const [prospectPage, setProspectPage] = useState(1);
   const [draftPage, setDraftPage] = useState(1);
   const [segment, setSegment] = useState(segments[0]?.id || "saas_founders");
@@ -165,6 +167,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     dashboard?.stats?.exactStageCounts?.[stage.id] ?? enrichedProspects.filter((prospect) => matchesStage(prospect, stage)).length
   ]));
   const roleOptions = Array.from(new Set(enrichedProspects.map((prospect) => prospect.buyer_title).filter(Boolean))).slice(0, 50);
+  const sourceOptions = Array.from(new Set(enrichedProspects.map((prospect) => prospect.source).filter(Boolean))).slice(0, 50);
   const visibleProspects = enrichedProspects.filter((prospect) => {
     const haystack = `${prospect.company_name || ""} ${prospect.buyer_name || ""} ${prospect.email || ""} ${prospect.industry || ""} ${prospect.country || ""} ${prospect.segment || ""} ${prospect.buyer_title || ""}`.toLowerCase();
     const hasSentEmail = sentEmails.has(prospect.email) || Boolean(prospect.last_sent_at);
@@ -176,6 +179,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     return matchesStage(prospect)
       && (!search || haystack.includes(search.toLowerCase()))
       && (roleFilter === "All" || prospect.buyer_title === roleFilter)
+      && (sourceFilter === "All" || prospect.source === sourceFilter)
       && matchesOutreach;
   });
   const totalProspectPages = Math.max(1, Math.ceil(visibleProspects.length / pageSize));
@@ -188,12 +192,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     .filter((draft) => {
       if (draft.send_result === "sent" || ["sent", "failed"].includes(draft.draft_status)) return false;
       if (!["ready", "reviewed"].includes(draft.draft_status)) return false;
-      if (["sent", "followup", "failed"].includes(activeStage)) {
-        const leadId = draft.lead_id || draft.sales_prospects?.lead_id;
-        const email = draft.sales_prospects?.email;
-        return visibleLeadIds.has(leadId) || visibleEmails.has(email);
-      }
-      return true;
+      const leadId = draft.lead_id || draft.sales_prospects?.lead_id;
+      const email = draft.sales_prospects?.email;
+      return visibleLeadIds.has(leadId) || visibleEmails.has(email);
     });
   const totalDraftPages = Math.max(1, Math.ceil(filteredDrafts.length / draftPageSize));
   const currentDraftPage = Math.min(draftPage, totalDraftPages);
@@ -219,6 +220,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         const nextPage = Number(result.nextPage || payload.apolloFilters?.page || apolloFilters.page);
         setApolloFilters((current) => ({ ...current, page: nextPage }));
         setActiveStage("raw");
+        setSourceFilter("apollo_client_acquisition");
         setSearch("");
         setRoleFilter("All");
         setMessageType("success");
@@ -240,6 +242,12 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         setManualLead(initialManualLead);
         setMessageType("success");
         setMessage(`Lead created successfully. View it in ${result.prospect.prospect_status === "scored" ? "Scored" : "Raw"} lead list, filtered by ${result.prospect.email}.`);
+      }
+      if (action === "updateProspectStatus") {
+        setSelectedIds([]);
+        setProspectPage(1);
+        if (payload.prospectStatus === "scored") setActiveStage("scored");
+        if (payload.prospectStatus === "verified") setActiveStage("approved");
       }
       router.refresh();
     } catch (error) {
@@ -335,13 +343,27 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
             <div className="flex flex-wrap gap-2">
               <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700" onClick={selectVisible}>Select page</button>
               <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700" onClick={() => setSelectedIds([])}>Unselect all</button>
+              {activeStage === "raw" && (
+                <button className="rounded-md bg-slate-950 px-3 py-2 text-sm font-bold text-white disabled:bg-slate-300" disabled={!selectedIds.length || Boolean(runningAction)} onClick={() => void handleAction("updateProspectStatus", { prospectIds: selectedIds, prospectStatus: "scored" })} type="button">
+                  Move selected to Scored
+                </button>
+              )}
+              {activeStage === "scored" && (
+                <button className="rounded-md bg-orange-500 px-3 py-2 text-sm font-black text-white disabled:bg-slate-300" disabled={!selectedIds.length || Boolean(runningAction)} onClick={() => void handleAction("updateProspectStatus", { prospectIds: selectedIds, prospectStatus: "verified" })} type="button">
+                  Approve selected
+                </button>
+              )}
             </div>
           </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
             <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setSearch(event.target.value); setProspectPage(1); }} placeholder="Search company, email, industry, country, role" value={search} />
             <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setRoleFilter(event.target.value); setProspectPage(1); }} value={roleFilter}>
               <option>All</option>
               {roleOptions.map((role) => <option key={role}>{role}</option>)}
+            </select>
+            <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setSourceFilter(event.target.value); setProspectPage(1); }} value={sourceFilter}>
+              <option>All</option>
+              {sourceOptions.map((source) => <option key={source}>{source}</option>)}
             </select>
             <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setOutreachFilter(event.target.value); setProspectPage(1); }} value={outreachFilter}>
               <option>All</option>
