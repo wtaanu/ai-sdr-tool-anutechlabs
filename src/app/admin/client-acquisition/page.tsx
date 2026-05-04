@@ -88,6 +88,15 @@ async function countSalesProspects(status: string) {
   return error ? 0 : count || 0;
 }
 
+async function countSalesProspectsAny(statuses: string[]) {
+  const supabase = getSupabaseAdminClient();
+  const { count, error } = await supabase
+    .from("sales_prospects")
+    .select("id", { count: "exact", head: true })
+    .in("prospect_status", statuses);
+  return error ? 0 : count || 0;
+}
+
 async function countFollowupDueProspects() {
   const supabase = getSupabaseAdminClient();
   const { count, error } = await supabase
@@ -105,14 +114,14 @@ async function getSupabaseSalesDashboardFallback() {
   try {
     const supabase = getSupabaseAdminClient();
     const [prospects, drafts, replies, events, customSegments, rawCount, scoredCount, approvedCount, sentCount, failedCount, repliedCount, followupDueCount] = await Promise.all([
-      supabase.from("sales_prospects").select("*").order("updated_at", { ascending: false }).limit(1000),
+      supabase.from("sales_prospects").select("*").order("updated_at", { ascending: false }).limit(5000),
       supabase.from("sales_email_drafts").select("*, sales_prospects(company_name,buyer_name,email,industry,segment,prospect_status,followup_count,last_sent_at,next_followup_at)").order("updated_at", { ascending: false }).limit(1000),
       supabase.from("sales_inbox_replies").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("client_acquisition_email_events").select("*").order("created_at", { ascending: false }).limit(1000),
       supabase.from("sales_segments").select("*").eq("is_active", true).order("created_at", { ascending: false }),
       countSalesProspects("new"),
       countSalesProspects("scored"),
-      countSalesProspects("verified"),
+      countSalesProspectsAny(["verified", "approved", "approved_for_review"]),
       countSalesProspects("sent"),
       countSalesProspects("failed"),
       countSalesProspects("replied"),
@@ -269,10 +278,22 @@ export default async function ClientAcquisitionPage() {
   const apiUrl = process.env.CLIENT_ACQUISITION_API_URL || "";
   const [bridgeHealth, sharedFunnel, bridgeSalesDashboard, supabaseSalesDashboard] = await Promise.all([getBridgeHealth(apiUrl), getSharedFunnelData(), getBridgeSalesDashboard(apiUrl), getSupabaseSalesDashboardFallback()]);
   const futureSourceCount = Math.max(sharedFunnel.stats.totalDrafts - sharedFunnel.stats.aiSdrDrafts - sharedFunnel.stats.apolloDrafts, 0);
+  const mergedProspects = Object.values([...(bridgeSalesDashboard?.prospects || []), ...(supabaseSalesDashboard.prospects || [])].reduce((acc: Record<string, any>, prospect: any) => {
+    const key = prospect.id || prospect.lead_id || prospect.email;
+    if (!key) return acc;
+    acc[key] = { ...(acc[key] || {}), ...prospect };
+    return acc;
+  }, {})).sort((left: any, right: any) => new Date(right.updated_at || right.created_at || 0).getTime() - new Date(left.updated_at || left.created_at || 0).getTime());
+  const mergedDrafts = Object.values([...(bridgeSalesDashboard?.drafts || []), ...(supabaseSalesDashboard.drafts || [])].reduce((acc: Record<string, any>, draft: any) => {
+    const key = draft.id || draft.draft_id || `${draft.lead_id}-${draft.subject_line}`;
+    if (!key) return acc;
+    acc[key] = { ...(acc[key] || {}), ...draft };
+    return acc;
+  }, {})).sort((left: any, right: any) => new Date(right.updated_at || right.created_at || 0).getTime() - new Date(left.updated_at || left.created_at || 0).getTime());
   const sourceDashboard = (supabaseSalesDashboard.prospects?.length || 0) >= (bridgeSalesDashboard?.prospects?.length || 0) ? supabaseSalesDashboard : bridgeSalesDashboard;
   const mergedDashboard = bridgeSalesDashboard
-    ? { ...bridgeSalesDashboard, ...sourceDashboard, emailEvents: [...(bridgeSalesDashboard.events || []), ...(supabaseSalesDashboard.events || []), ...sharedFunnel.events] }
-    : { emailEvents: sharedFunnel.events };
+    ? { ...bridgeSalesDashboard, ...sourceDashboard, prospects: mergedProspects, drafts: mergedDrafts, emailEvents: [...(bridgeSalesDashboard.events || []), ...(supabaseSalesDashboard.events || []), ...sharedFunnel.events] }
+    : { ...supabaseSalesDashboard, prospects: mergedProspects, drafts: mergedDrafts, emailEvents: [...(supabaseSalesDashboard.events || []), ...sharedFunnel.events] };
   const readiness = [
     ["Railway bridge", Boolean(bridgeHealth?.ok), bridgeHealth?.service || "Bridge not reachable"],
     ["Email provider", Boolean(bridgeHealth?.emailProvider?.activeProvider && bridgeHealth.emailProvider.activeProvider !== "none"), bridgeHealth?.emailProvider?.activeProvider || "Not detected"],
@@ -294,24 +315,24 @@ export default async function ClientAcquisitionPage() {
             </p>
           </div>
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-600">funnel path</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-600">owner view</p>
             <p className="mt-3 text-sm leading-7 text-slate-700">
-              Apollo / Website / LinkedIn / Meta - Verified Leads - Scored Leads - Drafts - Reviewed 50 - Sent - Follow-Up - Replies - Calls - Won
+              Pull leads, review one pipeline, draft outreach, send, track replies, and move only real opportunities forward.
             </p>
           </article>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
           {[
-            ["Shared drafts", String(sharedFunnel.stats.totalDrafts), "/admin/emails?source=Client%20Acquisition"],
-            ["Sent emails", String(sharedFunnel.stats.sentEvents), "/admin/emails?status=sent"],
-            ["Queued drafts", String(sharedFunnel.stats.queuedEvents), "/admin/emails?source=Client%20Acquisition"],
-            ["Failed sends", String(sharedFunnel.stats.failedEvents), "/admin/emails?status=failed"]
+            ["Shared drafts", String(sharedFunnel.stats.totalDrafts), "#draft-review"],
+            ["Sent emails", String(sharedFunnel.stats.sentEvents), "#email-events"],
+            ["Queued drafts", String(sharedFunnel.stats.queuedEvents), "#draft-review"],
+            ["Failed sends", String(sharedFunnel.stats.failedEvents), "#email-events"]
           ].map(([label, value, href]) => (
             <a key={label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft transition hover:border-orange-300 hover:bg-orange-50" href={href}>
               <p className="text-sm text-slate-500">{label}</p>
               <p className="mt-2 text-xl font-black text-slate-950">{value}</p>
-              <p className="mt-2 text-xs font-bold text-orange-600">Open full list</p>
+              <p className="mt-2 text-xs font-bold text-orange-600">Open on this page</p>
             </a>
           ))}
         </div>
@@ -320,8 +341,9 @@ export default async function ClientAcquisitionPage() {
 
         <section className="mt-8 space-y-6">
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
-            <h2 className="text-xl font-black text-slate-950">Source split</h2>
-            <div className="mt-5 space-y-3">
+            <h2 className="text-xl font-black text-slate-950">Lead sources in this CRM</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Use this as your source health view: where leads came from, what is active today, and what future channels will plug into the same pipeline.</p>
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
               {[
                 ["AI SDR website", sharedFunnel.stats.aiSdrDrafts],
                 ["Apollo acquisition", sharedFunnel.stats.apolloDrafts],
@@ -398,7 +420,9 @@ export default async function ClientAcquisitionPage() {
             </div>
           </article>
 
-          <ClientAcquisitionEventsTable events={sharedFunnel.events} />
+          <div id="email-events">
+            <ClientAcquisitionEventsTable events={sharedFunnel.events} />
+          </div>
         </section>
 
         <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-soft">

@@ -18,8 +18,8 @@ type BridgeDashboard = {
 const stageConfig = [
   { id: "raw", label: "Raw", statuses: ["new"] },
   { id: "scored", label: "Scored", statuses: ["scored"] },
-  { id: "approved", label: "Approved", statuses: ["verified"] },
-  { id: "sent", label: "Sent", statuses: ["sent", "sequence_complete"] },
+  { id: "approved", label: "Approved", statuses: ["verified", "approved", "approved_for_review"] },
+  { id: "sent", label: "Contacted", statuses: ["sent", "sequence_complete"] },
   { id: "followup", label: "Follow-up due", statuses: ["followup_due", "sent"] },
   { id: "failed", label: "Failed", statuses: ["failed"] },
   { id: "replied", label: "Replies", statuses: ["replied"] }
@@ -84,6 +84,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [outreachFilter, setOutreachFilter] = useState("All");
   const [prospectPage, setProspectPage] = useState(1);
   const [draftPage, setDraftPage] = useState(1);
   const [segment, setSegment] = useState(segments[0]?.id || "saas_founders");
@@ -120,6 +121,28 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     }
     return lookup;
   }, [events]);
+  const emailHistoryByEmail = useMemo(() => {
+    const lookup = new Map<string, any[]>();
+    for (const event of events) {
+      const email = event.email || event.sales_prospects?.email;
+      if (!email) continue;
+      lookup.set(email, [...(lookup.get(email) || []), event]);
+    }
+    for (const draft of drafts) {
+      const email = draft.sales_prospects?.email;
+      if (!email) continue;
+      const draftEvent = {
+        id: draft.id,
+        event_type: draft.send_result || draft.draft_status,
+        subject_line: draft.subject_line,
+        created_at: draft.sent_at || draft.updated_at,
+        detail: draft.mail_type ? `${draft.mail_type} step ${draft.sequence_step || 1}` : "Sales draft"
+      };
+      lookup.set(email, [...(lookup.get(email) || []), draftEvent]);
+    }
+    return lookup;
+  }, [drafts, events]);
+  const sentEmails = useMemo(() => new Set(Array.from(emailHistoryByEmail.entries()).filter(([, history]) => history.some((item) => ["sent", "delivered", "opened", "clicked"].includes(item.event_type))).map(([email]) => email)), [emailHistoryByEmail]);
   const enrichedProspects = useMemo(() => prospects.map((prospect) => ({
     ...prospect,
     prospect_status: failedEmails.has(prospect.email) ? "failed" : prospect.prospect_status
@@ -144,9 +167,16 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const roleOptions = Array.from(new Set(enrichedProspects.map((prospect) => prospect.buyer_title).filter(Boolean))).slice(0, 50);
   const visibleProspects = enrichedProspects.filter((prospect) => {
     const haystack = `${prospect.company_name || ""} ${prospect.buyer_name || ""} ${prospect.email || ""} ${prospect.industry || ""} ${prospect.country || ""} ${prospect.segment || ""} ${prospect.buyer_title || ""}`.toLowerCase();
+    const hasSentEmail = sentEmails.has(prospect.email) || Boolean(prospect.last_sent_at);
+    const matchesOutreach =
+      outreachFilter === "All"
+      || (outreachFilter === "Never sent" && !hasSentEmail)
+      || (outreachFilter === "Contacted" && hasSentEmail)
+      || (outreachFilter === "Follow-up due" && dueForFollowup(prospect));
     return matchesStage(prospect)
       && (!search || haystack.includes(search.toLowerCase()))
-      && (roleFilter === "All" || prospect.buyer_title === roleFilter);
+      && (roleFilter === "All" || prospect.buyer_title === roleFilter)
+      && matchesOutreach;
   });
   const totalProspectPages = Math.max(1, Math.ceil(visibleProspects.length / pageSize));
   const currentProspectPage = Math.min(prospectPage, totalProspectPages);
@@ -156,6 +186,8 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const visibleEmails = new Set(visibleProspects.map((prospect) => prospect.email).filter(Boolean));
   const filteredDrafts = drafts
     .filter((draft) => {
+      if (draft.send_result === "sent" || ["sent", "failed"].includes(draft.draft_status)) return false;
+      if (!["ready", "reviewed"].includes(draft.draft_status)) return false;
       if (["sent", "followup", "failed"].includes(activeStage)) {
         const leadId = draft.lead_id || draft.sales_prospects?.lead_id;
         const email = draft.sales_prospects?.email;
@@ -286,14 +318,14 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
         {stageConfig.map((stage) => (
-          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); }}>
+          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); setOutreachFilter("All"); }}>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{stage.label}</p>
             <p className="mt-2 text-2xl font-black text-slate-950">{stageCounts[stage.id] || 0}</p>
           </button>
         ))}
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="space-y-8">
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
           <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
             <div>
@@ -305,21 +337,30 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700" onClick={() => setSelectedIds([])}>Unselect all</button>
             </div>
           </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
             <input className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setSearch(event.target.value); setProspectPage(1); }} placeholder="Search company, email, industry, country, role" value={search} />
             <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setRoleFilter(event.target.value); setProspectPage(1); }} value={roleFilter}>
               <option>All</option>
               {roleOptions.map((role) => <option key={role}>{role}</option>)}
             </select>
+            <select className="rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => { setOutreachFilter(event.target.value); setProspectPage(1); }} value={outreachFilter}>
+              <option>All</option>
+              <option>Never sent</option>
+              <option>Contacted</option>
+              <option>Follow-up due</option>
+            </select>
           </div>
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="sticky top-0 bg-white text-xs uppercase tracking-[0.12em] text-slate-500">
-                <tr><th className="py-3 pr-3">Pick</th><th className="py-3 pr-4">Lead</th><th className="py-3 pr-4">Segment</th><th className="py-3 pr-4">Score</th><th className="py-3 pr-4">Status</th></tr>
+                <tr><th className="py-3 pr-3">Pick</th><th className="py-3 pr-4">Lead</th><th className="py-3 pr-4">Segment</th><th className="py-3 pr-4">Score</th><th className="py-3 pr-4">Outreach</th><th className="py-3 pr-4">Status</th></tr>
               </thead>
               <tbody>
                 {pagedProspects.map((prospect) => {
                   const failure = latestFailureByEmail.get(prospect.email);
+                  const history = emailHistoryByEmail.get(prospect.email) || [];
+                  const sentCount = history.filter((item) => ["sent", "delivered", "opened", "clicked"].includes(item.event_type)).length + (prospect.last_sent_at && !history.some((item) => item.event_type === "sent") ? 1 : 0);
+                  const lastHistory = history[0];
                   return (
                   <Fragment key={prospect.id}>
                   <tr className="border-t border-slate-100">
@@ -327,19 +368,38 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                     <td className="py-3 pr-4"><p className="font-bold text-slate-950">{prospect.company_name || prospect.email}</p><p className="text-xs text-slate-500">{prospect.buyer_name || "No name"} · {prospect.buyer_title || "No role"}</p><p className="text-xs text-slate-500">{prospect.email} · {prospect.industry || "No industry"} · {prospect.country || "No country"}</p></td>
                     <td className="py-3 pr-4 text-slate-700">{prospect.segment || "general_b2b"}</td>
                     <td className="py-3 pr-4"><span className="rounded-full bg-orange-50 px-3 py-1 font-bold text-orange-700">{prospect.lead_score || 0}</span></td>
+                    <td className="py-3 pr-4">
+                      {sentCount ? (
+                        <details>
+                          <summary className="cursor-pointer whitespace-nowrap rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">Mail sent {sentCount}</summary>
+                          <div className="mt-3 min-w-72 rounded-md border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600 shadow-soft">
+                            {history.slice(0, 8).map((item, index) => (
+                              <p key={`${item.id || item.created_at}-${index}`} className="border-b border-slate-100 py-2 last:border-0">
+                                <span className="font-bold text-slate-950">{item.event_type}</span> · {item.subject_line || "No subject"}<br />
+                                <span className="text-slate-500">{item.created_at ? new Date(item.created_at).toLocaleString() : "No date"} {item.detail ? `· ${item.detail}` : ""}</span>
+                              </p>
+                            ))}
+                          </div>
+                        </details>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Never sent</span>
+                      )}
+                      {dueForFollowup(prospect) && <p className="mt-2 text-xs font-black text-orange-600">Follow-up due</p>}
+                      {!sentCount && lastHistory && <p className="mt-2 text-xs text-slate-500">{lastHistory.event_type}</p>}
+                    </td>
                     <td className="py-3 pr-4 text-slate-700">{prospect.prospect_status}</td>
                   </tr>
                     {activeStage === "failed" && (
                       <tr className="border-t border-red-100 bg-red-50/60">
                         <td className="py-3 pr-3" />
-                        <td className="py-3 pr-4 text-xs font-semibold leading-5 text-red-700" colSpan={4}>
+                        <td className="py-3 pr-4 text-xs font-semibold leading-5 text-red-700" colSpan={5}>
                           Failure reason: {failure?.detail || prospect.verification_notes || "No provider detail captured yet."}
                         </td>
                       </tr>
                     )}
                   </Fragment>
                 )})}
-                {!pagedProspects.length && <tr><td className="py-5 text-slate-500" colSpan={5}>No leads in this stage yet. Sync Sheets or pull Apollo leads.</td></tr>}
+                {!pagedProspects.length && <tr><td className="py-5 text-slate-500" colSpan={6}>No leads in this stage yet. Sync Sheets or pull Apollo leads.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -355,7 +415,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
           </div>
         </section>
 
-        <aside className="space-y-8">
+        <aside className="grid gap-8 xl:grid-cols-2">
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
             <h3 className="text-xl font-black text-slate-950">Create next campaign batch</h3>
             <div className="mt-5 space-y-3">
@@ -421,7 +481,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         </aside>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_0.9fr]">
+      <div className="space-y-8" id="draft-review">
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
           <h3 className="text-xl font-black text-slate-950">Draft review queue</h3>
           <div className="mt-4 flex flex-col justify-between gap-3 rounded-md bg-slate-50 p-3 sm:flex-row sm:items-center">
