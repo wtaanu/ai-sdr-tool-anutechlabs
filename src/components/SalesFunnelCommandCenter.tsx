@@ -132,6 +132,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [limit, setLimit] = useState(50);
   const [draftInstruction, setDraftInstruction] = useState("");
   const [activeDraft, setActiveDraft] = useState<any | null>(null);
+  const [generatedDrafts, setGeneratedDrafts] = useState<any[]>([]);
   const [selectedDraftIds, setSelectedDraftIds] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -225,7 +226,15 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const selectedProspects = pagedProspects.filter((prospect) => selectedIds.includes(prospect.id));
   const visibleLeadIds = new Set(visibleProspects.map((prospect) => prospect.lead_id).filter(Boolean));
   const visibleEmails = new Set(visibleProspects.map((prospect) => prospect.email).filter(Boolean));
-  const filteredDrafts = drafts
+  const allDrafts = useMemo(() => {
+    const byId = new Map<string, any>();
+    for (const draft of [...generatedDrafts, ...drafts]) {
+      if (!draft?.id) continue;
+      byId.set(draft.id, { ...(byId.get(draft.id) || {}), ...draft });
+    }
+    return Array.from(byId.values());
+  }, [drafts, generatedDrafts]);
+  const filteredDrafts = allDrafts
     .filter((draft) => {
       if (draft.send_result === "sent" || ["sent", "failed"].includes(draft.draft_status)) return false;
       if (!["ready", "reviewed"].includes(draft.draft_status)) return false;
@@ -268,12 +277,30 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         setMessageType(imported > 0 ? "success" : "error");
         setMessage(`Apollo pull completed. Apollo returned ${returned} people. Imported ${imported} new prospects, skipped ${duplicates} duplicates and ${missingEmail} without email. Pages pulled: ${(result.pagesPulled || []).join(", ") || "none"}. Next pull will start at page ${nextPage}.${imported === 0 ? " Try page 1 again, remove revenue/company-size/exclude filters, or broaden keywords/titles." : ""}`);
       }
+      if (action === "generateDrafts") {
+        const newDrafts = Array.isArray(result.drafts) ? result.drafts : [];
+        setGeneratedDrafts(newDrafts);
+        setDraftPage(1);
+        setSelectedDraftIds(newDrafts.map((draft: any) => draft.id).filter(Boolean));
+        setActiveDraft(newDrafts[0] || null);
+        setMessageType(newDrafts.length ? "success" : "error");
+        setMessage(newDrafts.length
+          ? `AI draft generation completed. ${newDrafts.length} drafts are ready below. Click Preview to review, then Send selected.`
+          : "No drafts were created. Select leads from the visible Apollo list, or check that the visible leads have valid emails."
+        );
+      }
       if (action === "sendDraft" && Number(result.failed || 0) > 0) {
         setMessageType("error");
         setActiveStage("failed");
         setProspectPage(1);
         setSelectedDraftIds([]);
         setSelectedIds([]);
+      }
+      if (action === "sendDraft" && Number(result.sent || 0) > 0) {
+        const sentIds = new Set((payload.draftIds || [payload.draftId]).filter(Boolean));
+        setGeneratedDrafts((current) => current.filter((draft) => !sentIds.has(draft.id)));
+        setSelectedDraftIds([]);
+        setActiveDraft(null);
       }
       if (action === "createManualProspect" && result.prospect) {
         setActiveStage(result.prospect.prospect_status === "scored" ? "scored" : "raw");
@@ -394,7 +421,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
         {stageConfig.map((stage) => (
-          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); setOutreachFilter("All"); }}>
+          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSourceList(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); setOutreachFilter("All"); }}>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{stage.label}</p>
             <p className="mt-2 text-2xl font-black text-slate-950">{stageCounts[stage.id] || 0}</p>
           </button>
@@ -525,8 +552,12 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               </select>
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setLimit(Number(event.target.value))} type="number" value={limit} />
               <textarea className="min-h-36 w-full rounded-md border border-slate-300 px-3 py-3 text-sm leading-6" onChange={(event) => setDraftInstruction(event.target.value)} placeholder="Optional AI draft instruction: paste your video URL, offer, email structure, CTA, objections, tone, or special personalization notes." value={draftInstruction} />
-              <button className="w-full rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400 disabled:opacity-60" disabled={Boolean(runningAction)} onClick={() => void handleAction("generateDrafts", { segment, mailType, sourceList, limit, draftInstruction, prospectIds: selectedIds })}>
-                {runningAction === "generateDrafts" ? "Generating drafts..." : `Generate AI drafts${selectedIds.length ? ` for ${selectedIds.length} selected` : ""}`}
+              <button className="w-full rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400 disabled:opacity-60" disabled={Boolean(runningAction)} onClick={() => {
+                const fallbackIds = visibleProspects.slice(0, limit).map((prospect) => prospect.id).filter(Boolean);
+                const prospectIds = selectedIds.length ? selectedIds : fallbackIds;
+                void handleAction("generateDrafts", { segment, mailType, sourceList: activeStage, limit, draftInstruction, prospectIds });
+              }}>
+                {runningAction === "generateDrafts" ? "Generating drafts..." : `Generate AI drafts${selectedIds.length ? ` for ${selectedIds.length} selected` : ` for ${Math.min(visibleProspects.length, limit)} visible leads`}`}
               </button>
             </div>
           </section>
@@ -598,6 +629,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                 <p className="mt-2 text-sm text-slate-700">{draft.subject_line}</p>
                 <p className="mt-1 text-xs text-slate-500">{draft.mail_type} · step {draft.sequence_step} · {draft.sales_prospects?.email}</p>
                 </button>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <button className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-orange-300" onClick={() => setActiveDraft(draft)} type="button">Preview</button>
+                  <button className="rounded-md bg-orange-500 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300" disabled={Boolean(runningAction)} onClick={() => void handleAction("sendDraft", { draftId: draft.id })} type="button">Send</button>
+                </div>
               </div>
             ))}
             {!filteredDrafts.length && <p className="text-sm text-slate-500">No campaign drafts yet.</p>}
