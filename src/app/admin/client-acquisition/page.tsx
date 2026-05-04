@@ -1,3 +1,4 @@
+import { ClientAcquisitionEventsTable } from "@/components/ClientAcquisitionEventsTable";
 import { SalesFunnelCommandCenter } from "@/components/SalesFunnelCommandCenter";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { requireAdminSession } from "@/lib/requireAdmin";
@@ -302,21 +303,22 @@ export default async function ClientAcquisitionPage() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
           {[
-            ["Shared drafts", String(sharedFunnel.stats.totalDrafts)],
-            ["Sent emails", String(sharedFunnel.stats.sentEvents)],
-            ["Queued drafts", String(sharedFunnel.stats.queuedEvents)],
-            ["Failed sends", String(sharedFunnel.stats.failedEvents)]
-          ].map(([label, value]) => (
-            <article key={label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
+            ["Shared drafts", String(sharedFunnel.stats.totalDrafts), "/admin/emails?source=Client%20Acquisition"],
+            ["Sent emails", String(sharedFunnel.stats.sentEvents), "/admin/emails?status=sent"],
+            ["Queued drafts", String(sharedFunnel.stats.queuedEvents), "/admin/emails?source=Client%20Acquisition"],
+            ["Failed sends", String(sharedFunnel.stats.failedEvents), "/admin/emails?status=failed"]
+          ].map(([label, value, href]) => (
+            <a key={label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft transition hover:border-orange-300 hover:bg-orange-50" href={href}>
               <p className="text-sm text-slate-500">{label}</p>
               <p className="mt-2 text-xl font-black text-slate-950">{value}</p>
-            </article>
+              <p className="mt-2 text-xs font-bold text-orange-600">Open full list</p>
+            </a>
           ))}
         </div>
 
         <SalesFunnelCommandCenter dashboard={mergedDashboard} />
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr]">
+        <section className="mt-8 space-y-6">
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
             <h2 className="text-xl font-black text-slate-950">Source split</h2>
             <div className="mt-5 space-y-3">
@@ -377,7 +379,7 @@ export default async function ClientAcquisitionPage() {
           </article>
         </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-2">
+        <section className="mt-8 space-y-6">
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
             <h2 className="text-xl font-black text-slate-950">Recent Sales Tool jobs</h2>
             <div className="mt-5 space-y-3">
@@ -396,22 +398,7 @@ export default async function ClientAcquisitionPage() {
             </div>
           </article>
 
-          <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
-            <h2 className="text-xl font-black text-slate-950">Recent email events</h2>
-            <div className="mt-5 space-y-3">
-              {sharedFunnel.events.map((event) => (
-                <div key={`${event.draft_id}-${event.event_type}-${event.created_at}`} className="rounded-md bg-slate-50 p-4">
-                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
-                    <p className="font-bold text-slate-950">{event.email || "Unknown recipient"}</p>
-                    <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">{event.event_type}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">{event.subject_line || "No subject"}</p>
-                  <p className="mt-2 text-xs text-slate-500">{sourceLabels[event.draft_source] || event.draft_source} - {formatDate(event.created_at)}</p>
-                </div>
-              ))}
-              {sharedFunnel.events.length === 0 && <p className="text-sm text-slate-500">No shared email events logged yet.</p>}
-            </div>
-          </article>
+          <ClientAcquisitionEventsTable events={sharedFunnel.events} />
         </section>
 
         <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-soft">

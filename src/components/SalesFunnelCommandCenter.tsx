@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 type BridgeDashboard = {
   segments?: Array<{ id: string; label: string; targetCount: number; apolloKeywords?: string; titles?: string }>;
@@ -49,6 +49,7 @@ const initialManualLead = {
 };
 
 const pageSize = 50;
+const draftPageSize = 50;
 
 async function runAction(action: string, payload: Record<string, any> = {}) {
   const response = await fetch("/api/admin/client-acquisition/action", {
@@ -84,6 +85,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [prospectPage, setProspectPage] = useState(1);
+  const [draftPage, setDraftPage] = useState(1);
   const [segment, setSegment] = useState(segments[0]?.id || "saas_founders");
   const [mailType, setMailType] = useState(mailTypes[0]?.id || "intro_value_prop");
   const [sourceList, setSourceList] = useState("raw");
@@ -152,7 +154,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const selectedProspects = pagedProspects.filter((prospect) => selectedIds.includes(prospect.id));
   const visibleLeadIds = new Set(visibleProspects.map((prospect) => prospect.lead_id).filter(Boolean));
   const visibleEmails = new Set(visibleProspects.map((prospect) => prospect.email).filter(Boolean));
-  const visibleDrafts = drafts
+  const filteredDrafts = drafts
     .filter((draft) => {
       if (["sent", "followup", "failed"].includes(activeStage)) {
         const leadId = draft.lead_id || draft.sales_prospects?.lead_id;
@@ -160,8 +162,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         return visibleLeadIds.has(leadId) || visibleEmails.has(email);
       }
       return true;
-    })
-    .slice(0, 100);
+    });
+  const totalDraftPages = Math.max(1, Math.ceil(filteredDrafts.length / draftPageSize));
+  const currentDraftPage = Math.min(draftPage, totalDraftPages);
+  const visibleDrafts = filteredDrafts.slice((currentDraftPage - 1) * draftPageSize, currentDraftPage * draftPageSize);
   const selectedDrafts = visibleDrafts.filter((draft) => selectedDraftIds.includes(draft.id));
 
   async function handleAction(action: string, payload: Record<string, any> = {}) {
@@ -282,7 +286,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
         {stageConfig.map((stage) => (
-          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); setProspectPage(1); }}>
+          <button key={stage.id} className={`rounded-lg border p-4 text-left shadow-soft ${activeStage === stage.id ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`} onClick={() => { setActiveStage(stage.id); setSelectedIds([]); setSelectedDraftIds([]); setProspectPage(1); setDraftPage(1); }}>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{stage.label}</p>
             <p className="mt-2 text-2xl font-black text-slate-950">{stageCounts[stage.id] || 0}</p>
           </button>
@@ -316,8 +320,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               <tbody>
                 {pagedProspects.map((prospect) => {
                   const failure = latestFailureByEmail.get(prospect.email);
-                  return (<>
-                  <tr key={prospect.id} className="border-t border-slate-100">
+                  return (
+                  <Fragment key={prospect.id}>
+                  <tr className="border-t border-slate-100">
                     <td className="py-3 pr-3"><input checked={selectedIds.includes(prospect.id)} onChange={() => toggleProspect(prospect.id)} type="checkbox" /></td>
                     <td className="py-3 pr-4"><p className="font-bold text-slate-950">{prospect.company_name || prospect.email}</p><p className="text-xs text-slate-500">{prospect.buyer_name || "No name"} · {prospect.buyer_title || "No role"}</p><p className="text-xs text-slate-500">{prospect.email} · {prospect.industry || "No industry"} · {prospect.country || "No country"}</p></td>
                     <td className="py-3 pr-4 text-slate-700">{prospect.segment || "general_b2b"}</td>
@@ -332,7 +337,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 )})}
                 {!pagedProspects.length && <tr><td className="py-5 text-slate-500" colSpan={5}>No leads in this stage yet. Sync Sheets or pull Apollo leads.</td></tr>}
               </tbody>
@@ -420,9 +425,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-soft">
           <h3 className="text-xl font-black text-slate-950">Draft review queue</h3>
           <div className="mt-4 flex flex-col justify-between gap-3 rounded-md bg-slate-50 p-3 sm:flex-row sm:items-center">
-            <p className="text-sm text-slate-600">{selectedDrafts.length} selected from {visibleDrafts.length} visible drafts.</p>
+            <p className="text-sm text-slate-600">{selectedDrafts.length} selected from page {currentDraftPage} of {totalDraftPages}. {filteredDrafts.length} total drafts.</p>
             <div className="flex flex-wrap gap-2">
-              <button className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700" onClick={() => setSelectedDraftIds(visibleDrafts.map((draft) => draft.id).filter(Boolean))} type="button">Select all</button>
+              <button className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700" onClick={() => setSelectedDraftIds(visibleDrafts.map((draft) => draft.id).filter(Boolean))} type="button">Select page</button>
               <button className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700" onClick={() => setSelectedDraftIds([])} type="button">Unselect all</button>
               <button className="rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white disabled:bg-slate-300" disabled={!selectedDraftIds.length || Boolean(runningAction)} onClick={() => void handleAction("reviewDraft", { draftIds: selectedDraftIds, status: "reviewed" })} type="button">{runningAction === "reviewDraft" ? "Marking..." : "Mark selected reviewed"}</button>
               <button className="rounded-md bg-orange-500 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300" disabled={!selectedDraftIds.length || Boolean(runningAction)} onClick={() => void handleAction("sendDraft", { draftIds: selectedDraftIds })} type="button">{runningAction === "sendDraft" ? "Sending..." : "Send selected"}</button>
@@ -442,7 +447,17 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                 </button>
               </div>
             ))}
-            {!drafts.length && <p className="text-sm text-slate-500">No campaign drafts yet.</p>}
+            {!filteredDrafts.length && <p className="text-sm text-slate-500">No campaign drafts yet.</p>}
+          </div>
+          <div className="mt-4 flex flex-col justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
+            <p className="text-sm font-semibold text-slate-500">
+              Showing {filteredDrafts.length ? (currentDraftPage - 1) * draftPageSize + 1 : 0}-{Math.min(currentDraftPage * draftPageSize, filteredDrafts.length)} of {filteredDrafts.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40" disabled={currentDraftPage <= 1} onClick={() => { setSelectedDraftIds([]); setDraftPage((page) => Math.max(1, page - 1)); }} type="button">Previous</button>
+              <span className="rounded-md bg-slate-50 px-3 py-2 text-sm font-black text-slate-700">{currentDraftPage} / {totalDraftPages}</span>
+              <button className="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40" disabled={currentDraftPage >= totalDraftPages} onClick={() => { setSelectedDraftIds([]); setDraftPage((page) => Math.min(totalDraftPages, page + 1)); }} type="button">Next</button>
+            </div>
           </div>
         </section>
 
