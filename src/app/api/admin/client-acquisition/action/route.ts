@@ -62,7 +62,9 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
 
   const supabase = getSupabaseAdminClient();
   const now = new Date().toISOString();
-  const records = rows
+  const recordsByLeadId = new Map<string, Record<string, unknown>>();
+  const duplicateRows = { count: 0 };
+  rows
     .map((row, index) => {
       const companyName = stringValue(row, ["Company Name", "Company", "company_name", "Organization Name"]);
       const email = stringValue(row, ["Email", "email", "Work Email"]).toLowerCase();
@@ -109,7 +111,12 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
         updated_at: now
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .forEach((record: any) => {
+      if (recordsByLeadId.has(record.lead_id)) duplicateRows.count += 1;
+      recordsByLeadId.set(record.lead_id, record);
+    });
+  const records = Array.from(recordsByLeadId.values());
 
   if (!records.length) {
     return NextResponse.json({ error: "CSV did not contain usable company or email rows." }, { status: 400 });
@@ -124,7 +131,7 @@ async function importApolloCsvRows(payload: Record<string, unknown>) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, imported: data?.length || 0, count: data?.length || 0, source: "apollo_api", missingEmail: records.filter((record: any) => !record.email).length });
+  return NextResponse.json({ ok: true, imported: data?.length || 0, count: data?.length || 0, source: "apollo_api", missingEmail: records.filter((record: any) => !record.email).length, duplicatesInCsv: duplicateRows.count });
 }
 
 async function createManualProspect(payload: Record<string, unknown>) {

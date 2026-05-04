@@ -353,7 +353,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
       setRoleFilter("All");
       setOutreachFilter("All");
       setProspectPage(1);
-      setMessage(`Apollo CSV import completed. ${result.imported || 0} rows added/updated as Apollo pulled Raw leads. ${result.missingEmail || 0} account rows need contact email enrichment before sending.`);
+      setMessage(`Apollo CSV import completed. ${result.imported || 0} rows added/updated as Apollo pulled Raw leads. ${result.duplicatesInCsv || 0} duplicate CSV rows were skipped. ${result.missingEmail || 0} account rows need contact email enrichment before sending.`);
       router.refresh();
     } catch (error) {
       setMessageType("error");
