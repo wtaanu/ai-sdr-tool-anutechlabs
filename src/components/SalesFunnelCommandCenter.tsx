@@ -96,11 +96,23 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
     targetTitles: segments[0]?.titles || "Founder,CEO,Co-Founder,Head of Sales",
     targetLocations: "United States,United Kingdom,India",
     emailStatus: "verified,likely to engage",
+    companySize: "",
+    excludeKeywords: "",
+    revenue: "",
     perPage: 25
   });
   const [manualLead, setManualLead] = useState(initialManualLead);
 
   const failedEmails = useMemo(() => new Set(events.filter((event: any) => event.event_type === "failed").map((event: any) => event.email).filter(Boolean)), [events]);
+  const latestFailureByEmail = useMemo(() => {
+    const lookup = new Map<string, any>();
+    for (const event of events) {
+      if (event.event_type === "failed" && event.email && !lookup.has(event.email)) {
+        lookup.set(event.email, event);
+      }
+    }
+    return lookup;
+  }, [events]);
   const enrichedProspects = useMemo(() => prospects.map((prospect) => ({
     ...prospect,
     prospect_status: failedEmails.has(prospect.email) ? "failed" : prospect.prospect_status
@@ -132,8 +144,17 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
       const syncedCount = result.migrated ?? result.count;
       const sourceRows = result.sourceRows || result.migration?.sourceRows;
       const sourceSummary = sourceRows ? ` Source rows: approved ${sourceRows.approved || 0}, scored ${sourceRows.scored || 0}, raw ${sourceRows.raw || 0}.` : "";
+      const failedPreview = Array.isArray(result.results)
+        ? result.results.filter((item: any) => !item.ok).slice(0, 3).map((item: any) => `${item.email || item.draftId}: ${item.error}`).join(" | ")
+        : "";
       setMessageType(result.error ? "error" : "success");
-      setMessage(result.error || `${actionLabel} completed.${result.draftsCreated !== undefined ? ` ${result.draftsCreated} drafts created.` : ""}${result.reviewed !== undefined ? ` ${result.reviewed} drafts marked reviewed.` : ""}${result.sent !== undefined ? ` ${result.sent} emails sent.` : ""}${result.failed !== undefined ? ` ${result.failed} failed.` : ""}${syncedCount !== undefined ? ` ${syncedCount} prospects synced.` : ""}${result.removed !== undefined ? ` ${result.removed} failed prospects removed.` : ""}${sourceSummary}`);
+      setMessage(result.error || `${actionLabel} completed.${result.draftsCreated !== undefined ? ` ${result.draftsCreated} drafts created.` : ""}${result.reviewed !== undefined ? ` ${result.reviewed} drafts marked reviewed.` : ""}${result.sent !== undefined ? ` ${result.sent} emails sent.` : ""}${result.failed !== undefined ? ` ${result.failed} failed.` : ""}${failedPreview ? ` Failed examples: ${failedPreview}` : ""}${syncedCount !== undefined ? ` ${syncedCount} prospects synced.` : ""}${result.removed !== undefined ? ` ${result.removed} failed prospects removed.` : ""}${sourceSummary}`);
+      if (action === "sendDraft" && Number(result.failed || 0) > 0) {
+        setMessageType("error");
+        setActiveStage("failed");
+        setSelectedDraftIds([]);
+        setSelectedIds([]);
+      }
       if (action === "createManualProspect" && result.prospect) {
         setActiveStage(result.prospect.prospect_status === "scored" ? "scored" : "raw");
         setSearch(result.prospect.email || payload.email || "");
@@ -252,7 +273,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                 <tr><th className="py-3 pr-3">Pick</th><th className="py-3 pr-4">Lead</th><th className="py-3 pr-4">Segment</th><th className="py-3 pr-4">Score</th><th className="py-3 pr-4">Status</th></tr>
               </thead>
               <tbody>
-                {visibleProspects.map((prospect) => (
+                {visibleProspects.map((prospect) => {
+                  const failure = latestFailureByEmail.get(prospect.email);
+                  return (<>
                   <tr key={prospect.id} className="border-t border-slate-100">
                     <td className="py-3 pr-3"><input checked={selectedIds.includes(prospect.id)} onChange={() => toggleProspect(prospect.id)} type="checkbox" /></td>
                     <td className="py-3 pr-4"><p className="font-bold text-slate-950">{prospect.company_name || prospect.email}</p><p className="text-xs text-slate-500">{prospect.buyer_name || "No name"} · {prospect.buyer_title || "No role"}</p><p className="text-xs text-slate-500">{prospect.email} · {prospect.industry || "No industry"} · {prospect.country || "No country"}</p></td>
@@ -260,7 +283,16 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                     <td className="py-3 pr-4"><span className="rounded-full bg-orange-50 px-3 py-1 font-bold text-orange-700">{prospect.lead_score || 0}</span></td>
                     <td className="py-3 pr-4 text-slate-700">{prospect.prospect_status}</td>
                   </tr>
-                ))}
+                    {activeStage === "failed" && (
+                      <tr className="border-t border-red-100 bg-red-50/60">
+                        <td className="py-3 pr-3" />
+                        <td className="py-3 pr-4 text-xs font-semibold leading-5 text-red-700" colSpan={4}>
+                          Failure reason: {failure?.detail || prospect.verification_notes || "No provider detail captured yet."}
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                )})}
                 {!visibleProspects.length && <tr><td className="py-5 text-slate-500" colSpan={5}>No leads in this stage yet. Sync Sheets or pull Apollo leads.</td></tr>}
               </tbody>
             </table>
@@ -301,6 +333,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, targetTitles: event.target.value }))} placeholder="Target roles" value={apolloFilters.targetTitles} />
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, targetLocations: event.target.value }))} placeholder="Target countries/locations" value={apolloFilters.targetLocations} />
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, emailStatus: event.target.value }))} placeholder="Email status" value={apolloFilters.emailStatus} />
+              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, companySize: event.target.value }))} placeholder="Company size, optional. Example: 1-10,11-50,51-200" value={apolloFilters.companySize} />
+              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, excludeKeywords: event.target.value }))} placeholder="Exclude keywords, optional. Example: student,intern,freelance" value={apolloFilters.excludeKeywords} />
+              <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" onChange={(event) => setApolloFilters((current) => ({ ...current, revenue: event.target.value }))} placeholder="Revenue, optional. Example: 1M-10M,10M-50M" value={apolloFilters.revenue} />
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, perPage: Number(event.target.value) }))} type="number" value={apolloFilters.perPage} />
               <button className="w-full rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600" disabled={Boolean(runningAction)} onClick={() => void handleAction("generateProspects", {
                 mode: "new",
@@ -309,7 +344,10 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                   includeKeywords: splitList(apolloFilters.includeKeywords),
                   targetTitles: splitList(apolloFilters.targetTitles),
                   targetLocations: splitList(apolloFilters.targetLocations),
-                  emailStatus: splitList(apolloFilters.emailStatus)
+                  emailStatus: splitList(apolloFilters.emailStatus),
+                  companySize: splitList(apolloFilters.companySize),
+                  excludeKeywords: splitList(apolloFilters.excludeKeywords),
+                  revenue: splitList(apolloFilters.revenue)
                 }
               })}>
                 Pull Apollo leads + auto score
