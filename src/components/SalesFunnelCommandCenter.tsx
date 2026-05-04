@@ -135,6 +135,8 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
   const [limit, setLimit] = useState(50);
   const [draftInstruction, setDraftInstruction] = useState("");
   const [activeDraft, setActiveDraft] = useState<any | null>(null);
+  const [draftSubject, setDraftSubject] = useState("");
+  const [draftBody, setDraftBody] = useState("");
   const [generatedDrafts, setGeneratedDrafts] = useState<any[]>([]);
   const [draftBatchIds, setDraftBatchIds] = useState<string[]>([]);
   const [draftQueueMode, setDraftQueueMode] = useState<"batch" | "visible">("visible");
@@ -562,7 +564,7 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                 {availableMailTypes.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
               </select>
               <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setLimit(Number(event.target.value))} type="number" value={limit} />
-              <textarea className="min-h-48 w-full rounded-md border border-slate-300 px-3 py-3 text-sm leading-6" onChange={(event) => setDraftInstruction(event.target.value)} placeholder="Paste your custom email logic here. Use Subject:, Hi [Name], [Company], {{free_audit_url}}, {{calendar_link}}, or your full email draft. Custom pasted email logic uses this as the main draft structure." value={draftInstruction} />
+              <textarea className="min-h-48 w-full rounded-md border border-slate-300 px-3 py-3 text-sm leading-6" onChange={(event) => setDraftInstruction(event.target.value)} placeholder="Paste your custom email logic here. Supports Subject:, [Name], [First Name], [Company], [Agency Name], [Specific Client/Vertical - e.g., SaaS companies], {{industry}}, {{vertical}}, {{free_audit_url}}, {{calendar_link}}. Custom pasted email logic uses this as the main draft structure." value={draftInstruction} />
               <button className="w-full rounded-md bg-orange-500 px-4 py-3 text-sm font-black text-white hover:bg-orange-400 disabled:opacity-60" disabled={Boolean(runningAction)} onClick={() => {
                 const fallbackIds = visibleProspects.slice(0, limit).map((prospect) => prospect.id).filter(Boolean);
                 const prospectIds = selectedIds.length ? selectedIds : fallbackIds;
