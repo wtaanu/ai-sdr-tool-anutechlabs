@@ -224,7 +224,12 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
         setSearch("");
         setRoleFilter("All");
         setMessageType("success");
-        setMessage(`Apollo pull completed. Imported ${result.imported || 0} new prospects, skipped ${result.duplicatesSkipped || 0} duplicates, pages pulled: ${(result.pagesPulled || []).join(", ") || "none"}. Next pull will start at page ${nextPage}.`);
+        const imported = Number(result.imported || 0);
+        const returned = Number(result.apolloReturned || 0);
+        const duplicates = Number(result.duplicatesSkipped || 0);
+        const missingEmail = Number(result.missingEmailSkipped || 0);
+        setMessageType(imported > 0 ? "success" : "error");
+        setMessage(`Apollo pull completed. Apollo returned ${returned} people. Imported ${imported} new prospects, skipped ${duplicates} duplicates and ${missingEmail} without email. Pages pulled: ${(result.pagesPulled || []).join(", ") || "none"}. Next pull will start at page ${nextPage}.${imported === 0 ? " Try page 1 again, remove revenue/company-size/exclude filters, or broaden keywords/titles." : ""}`);
       }
       if (action === "sendDraft" && Number(result.failed || 0) > 0) {
         setMessageType("error");
@@ -479,6 +484,9 @@ export function SalesFunnelCommandCenter({ dashboard }: { dashboard: BridgeDashb
                 <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={10} min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, pagesToPull: Number(event.target.value) }))} placeholder="Pages to pull" type="number" value={apolloFilters.pagesToPull} />
                 <input className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm" max={100} min={1} onChange={(event) => setApolloFilters((current) => ({ ...current, perPage: Number(event.target.value) }))} placeholder="Per page max 100" type="number" value={apolloFilters.perPage} />
               </div>
+              <button className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 hover:border-orange-300" onClick={() => setApolloFilters((current) => ({ ...current, page: 1, pagesToPull: 1, perPage: 100, revenue: "", companySize: "", excludeKeywords: "" }))} type="button">
+                Reset Apollo search to page 1 and broaden filters
+              </button>
               <p className="text-xs font-semibold leading-5 text-slate-500">Apollo allows up to 100 per page. For 500 leads, set pages to pull as 5. The next pull automatically moves to the next page and skips existing emails.</p>
               <button className="w-full rounded-md bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-orange-600" disabled={Boolean(runningAction)} onClick={() => void handleAction("generateProspects", {
                 mode: "new",
